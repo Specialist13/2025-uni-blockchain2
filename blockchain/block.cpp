@@ -18,7 +18,7 @@ long long Block::getNonce() const { return nonce; }
 std::string Block::toString() const {
     std::string txs;
     for (const auto& tx : transactions) {
-        txs += tx.toString() + "; ";
+        txs += tx.toString();
     }
     return previous_block_hash + merkle_root_hash + std::to_string(version) + std::to_string(difficulty) + std::to_string(timestamp) + std::to_string(nonce) + txs;
 }
