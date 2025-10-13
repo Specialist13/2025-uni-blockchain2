@@ -9,5 +9,6 @@
 #include <ctime>
 #include <iomanip>
 #include "./helpers/user_generation.h"
+#include "./helpers/transaction_generation.h"
 
 #endif
