@@ -1,0 +1,20 @@
+#include "block.h"
+
+Block::Block(std::string previous_block_hash_, std::string merkle_root_hash_, int version_, int difficulty_, long long timestamp_, long long nonce_)
+    : previous_block_hash(previous_block_hash_), merkle_root_hash(merkle_root_hash_), version(version_), difficulty(difficulty_), timestamp(timestamp_), nonce(nonce_) {}
+
+std::string Block::getPreviousBlockHash() const { return previous_block_hash; }
+
+std::string Block::getMerkleRootHash() const { return merkle_root_hash; }
+
+int Block::getVersion() const { return version; }
+
+int Block::getDifficulty() const { return difficulty; }
+
+long long Block::getTimestamp() const { return timestamp; }
+
+long long Block::getNonce() const { return nonce; }
+
+std::string Block::toString() const {
+    return previous_block_hash + merkle_root_hash + std::to_string(version) + std::to_string(difficulty) + std::to_string(timestamp) + std::to_string(nonce);
+}
