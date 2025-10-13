@@ -2,6 +2,8 @@
 #define BLOCK_H
 
 #include <string>
+#include <vector>
+#include "transaction.h"
 
 class Block {
 private:
@@ -11,8 +13,10 @@ private:
     int difficulty;
     long long timestamp;
     long long nonce;
+
+    std::vector<Transaction> transactions;
 public:
-    Block(std::string previous_block_hash_, std::string merkle_root_hash_, int version_, int difficulty_, long long timestamp_, long long nonce_);
+    Block(std::string previous_block_hash_, std::string merkle_root_hash_, int version_, int difficulty_, long long timestamp_, long long nonce_, std::vector<Transaction> transactions_);
 
     std::string getPreviousBlockHash() const;
     std::string getMerkleRootHash() const;

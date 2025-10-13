@@ -1,0 +1,4 @@
+#ifndef GENESIS_BLOCK_CREATION_H
+#define GENESIS_BLOCK_CREATION_H
+
+#endif
