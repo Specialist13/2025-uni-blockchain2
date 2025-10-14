@@ -14,6 +14,7 @@ private:
 public:
     TransactionInputs(std::string previous_transaction_id_, int output_index_, std::string signature_);
     std::string toString() const;
+    std::string toJson() const;
 };
 
 class TransactionOutputs {
@@ -24,6 +25,7 @@ private:
 public:
     TransactionOutputs(std::string receiver_public_key_, double amount_);
     std::string toString() const;
+    std::string toJson() const;
 };
 
 class Transaction {
@@ -39,6 +41,7 @@ public:
     const std::vector<TransactionOutputs>& getOutputs() const;
 
     std::string toString() const;
+    std::string toJson() const;
 
     std::string computeTransactionHash() const;
 };

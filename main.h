@@ -10,5 +10,6 @@
 #include <iomanip>
 #include "./helpers/user_generation.h"
 #include "./helpers/transaction_generation.h"
+#include "./helpers/genesis_block_creation.h"
 
 #endif

@@ -4,9 +4,9 @@
 #include <string>
 #include <vector>
 #include <fstream>
-#include "./blockchain/block.h"
-#include "./blockchain/transaction.h"
-#include "./blockchain/hash_function.h"
+#include "../blockchain/block.h"
+#include "../blockchain/transaction.h"
+#include "../blockchain/hash_function.h"
 
 Block createGenesisBlock();
 

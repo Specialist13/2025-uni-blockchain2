@@ -3,6 +3,8 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
+#include <fstream>
 #include "transaction.h"
 #include "hash_function.h"
 
@@ -30,11 +32,14 @@ public:
 
     std::string toString() const;
 
+    std::string toJson() const;
+
     std::string computePreviousBlockHash() const;
 
     static std::string computeMerkleRoot(const std::vector<Transaction>& transactions);
 
     void outputBlockInfo() const;
+    void saveToJson(const std::string& path) const;
 };
 
 #endif
