@@ -52,12 +52,14 @@ void generate_users(const std::string& filename, int num_users) {
     std::ofstream fout(filename);
     std::mt19937 rng(std::random_device{}());
     std::uniform_int_distribution<int> name_dist(0, 200);
-    std::uniform_int_distribution<int> public_key_dist(0, 15);
+    std::uniform_int_distribution<int> key_dist(0, 15);
     std::uniform_int_distribution<int> balance_dist(100, 1000000);
 
     for (int i = 0; i < num_users; ++i) {
         fout << std::left << std::setw(12) << first_names[name_dist(rng)] << " " << std::setw(12) << last_names[name_dist(rng)] << " ";
-        for (int i = 0; i < 64; i++) fout << std::hex << public_key_dist(rng);
+        for (int i = 0; i < 64; i++) fout << std::hex << key_dist(rng);
+        fout << " ";
+        for (int i = 0; i < 64; i++) fout << std::hex << key_dist(rng);
         fout << " " << std::dec << balance_dist(rng) << "\n";
     }
 }

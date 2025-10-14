@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include "transaction.h"
+#include "hash_function.h"
 
 class Block {
 private:
@@ -25,7 +26,15 @@ public:
     long long getTimestamp() const;
     long long getNonce() const;
 
+    const std::vector<Transaction>& getTransactions() const;
+
     std::string toString() const;
+
+    std::string computePreviousBlockHash() const;
+
+    static std::string computeMerkleRoot(const std::vector<Transaction>& transactions);
+
+    void outputBlockInfo() const;
 };
 
 #endif

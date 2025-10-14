@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include "hash_function.h"
 
 class TransactionInputs {
 private:
@@ -38,6 +39,8 @@ public:
     const std::vector<TransactionOutputs>& getOutputs() const;
 
     std::string toString() const;
+
+    std::string computeTransactionHash() const;
 };
 
 #endif

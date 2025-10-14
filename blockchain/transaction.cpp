@@ -29,3 +29,8 @@ std::string Transaction::toString() const {
     for (const auto& output : outputs) serial += output.toString();
     return transaction_id + serial;
 }
+
+std::string Transaction::computeTransactionHash() const {
+    std::string str = Transaction::toString();
+    return SlaSimHash(str);
+}

@@ -15,10 +15,44 @@ long long Block::getTimestamp() const { return timestamp; }
 
 long long Block::getNonce() const { return nonce; }
 
+const std::vector<Transaction>& Block::getTransactions() const { return transactions; }
+
 std::string Block::toString() const {
     std::string txs;
     for (const auto& tx : transactions) {
         txs += tx.toString();
     }
     return previous_block_hash + merkle_root_hash + std::to_string(version) + std::to_string(difficulty) + std::to_string(timestamp) + std::to_string(nonce) + txs;
+}
+
+std::string Block::computePreviousBlockHash() const {
+    
+}
+
+std::string computeMerkleRoot(const std::vector<Transaction>& transactions) {
+    if (transactions.empty()) return std::string(64, '0');
+
+    std::vector<std::string> layer;
+    for (const auto& tx : transactions) {
+        layer.push_back(tx.computeTransactionHash());
+    }
+
+    while (layer.size() > 1) {
+        if (layer.size() % 2 != 0) {
+            layer.push_back(layer.back());
+        }
+
+        std::vector<std::string> new_layer;
+        for (int i = 0; i < layer.size(); i += 2) {
+            std::string combined = layer[i] + layer[i + 1];
+            new_layer.push_back(SlaSimHash(combined));
+        }
+        layer = new_layer;
+    }
+
+    return layer.front();
+}
+
+void Block::outputBlockInfo() const {
+    
 }
