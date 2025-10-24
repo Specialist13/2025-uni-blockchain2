@@ -1,7 +1,6 @@
 #include "block.h"
 #include <sstream>
 
-// Helper: indent each line of `s` by `spaces` spaces.
 static std::string indent_block(const std::string& s, int spaces) {
     std::istringstream iss(s);
     std::string line;
@@ -42,9 +41,7 @@ std::string Block::toString() const {
 }
 
 std::string Block::computePreviousBlockHash() const {
-    // Compute a hash over the previous block hash and basic header fields
     std::string header = previous_block_hash + merkle_root_hash + std::to_string(version) + std::to_string(difficulty) + std::to_string(timestamp) + std::to_string(nonce);
-    // SlaSimHash expects a non-const reference, create a temp
     std::string tmp = header;
     return SlaSimHash(tmp);
 }

@@ -1,5 +1,5 @@
-#ifndef USER_GENERATION_H
-#define USER_GENERATION_H
+#ifndef GENERATE_USERS_H
+#define GENERATE_USERS_H
 
 #include <string>
 #include <fstream>

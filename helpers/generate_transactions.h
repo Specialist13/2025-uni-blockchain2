@@ -1,5 +1,5 @@
-#ifndef TRANSACTION_GENERATION_H
-#define TRANSACTION_GENERATION_H
+#ifndef GENERATE_TRANSACTIONS_H
+#define GENERATE_TRANSACTIONS_H
 
 #include <string>
 #include <fstream>

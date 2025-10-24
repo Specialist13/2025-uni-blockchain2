@@ -1,4 +1,4 @@
-#include "user_generation.h"
+#include "generate_users.h"
 
 std::string first_names[500] = {
     "James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda", "William", "Elizabeth",
@@ -51,7 +51,7 @@ std::string last_names[500] = {
 void generate_users(const std::string& filename, int num_users) {
     std::ofstream fout(filename);
     std::mt19937 rng(std::random_device{}());
-    std::uniform_int_distribution<int> name_dist(0, 200);
+    std::uniform_int_distribution<int> name_dist(0, 199);
     std::uniform_int_distribution<int> key_dist(0, 15);
     std::uniform_int_distribution<int> balance_dist(100, 1000000);
 
