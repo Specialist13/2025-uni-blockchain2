@@ -7,6 +7,7 @@
 #include "../blockchain/block.h"
 #include "../blockchain/transaction.h"
 #include "../blockchain/hash_function.h"
+#include "../blockchain/UTXO_set.h"
 
 Block createGenesisBlock();
 

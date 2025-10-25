@@ -1,21 +1,7 @@
 #include "transaction.h"
-#include <sstream>
-#include <iomanip>
+#include "../include/nlohmann/json.hpp"
 
-// Helper: indent each line of `s` by `spaces` spaces.
-static std::string indent(const std::string& s, int spaces) {
-    std::istringstream iss(s);
-    std::string line;
-    std::string out;
-    std::string pad(spaces, ' ');
-    bool first = true;
-    while (std::getline(iss, line)) {
-        if (!first) out += "\n";
-        out += pad + line;
-        first = false;
-    }
-    return out;
-}
+using json = nlohmann::json;
 
 TransactionInputs::TransactionInputs(std::string previous_transaction_id_, int output_index_, std::string signature_)
     : previous_transaction_id(std::move(previous_transaction_id_)),
@@ -26,30 +12,11 @@ std::string TransactionInputs::toString() const {
     return previous_transaction_id + std::to_string(output_index) + signature;
 }
 
-std::string TransactionInputs::toJson() const {
-    std::ostringstream ss;
-    ss << "{\n";
-    ss << "  \"previous_transaction_id\": \"" << previous_transaction_id << "\",\n";
-    ss << "  \"output_index\": " << output_index << ",\n";
-    ss << "  \"signature\": \"" << signature << "\"\n";
-    ss << "}";
-    return ss.str();
-}
-
 TransactionOutputs::TransactionOutputs(std::string receiver_public_key_, double amount_)
     : receiver_public_key(std::move(receiver_public_key_)), amount(amount_) {}
 
 std::string TransactionOutputs::toString() const {
     return receiver_public_key + std::to_string(amount);
-}
-
-std::string TransactionOutputs::toJson() const {
-    std::ostringstream ss;
-    ss << "{\n";
-    ss << "  \"receiver_public_key\": \"" << receiver_public_key << "\",\n";
-    ss << "  \"amount\": " << std::fixed << std::setprecision(8) << amount << "\n";
-    ss << "}";
-    return ss.str();
 }
 
 Transaction::Transaction(std::string transaction_id_, std::vector<TransactionInputs> inputs_, std::vector<TransactionOutputs> outputs_)
@@ -76,26 +43,27 @@ std::string Transaction::computeTransactionHash() const {
 }
 
 std::string Transaction::toJson() const {
-    std::ostringstream ss;
-    ss << "{\n";
-    ss << "  \"transaction_id\": \"" << transaction_id << "\",\n";
-
-    ss << "  \"inputs\": [\n";
-    for (size_t i = 0; i < inputs.size(); ++i) {
-        ss << indent(inputs[i].toJson(), 4);
-        if (i + 1 < inputs.size()) ss << ",";
-        ss << "\n";
+    json j;
+    j["transaction_id"] = transaction_id;
+    
+    json inputs_array = json::array();
+    for (const auto& input : inputs) {
+        json input_obj;
+        input_obj["previous_transaction_id"] = input.previous_transaction_id;
+        input_obj["output_index"] = input.output_index;
+        input_obj["signature"] = input.signature;
+        inputs_array.push_back(input_obj);
     }
-    ss << "  ],\n";
-
-    ss << "  \"outputs\": [\n";
-    for (size_t i = 0; i < outputs.size(); ++i) {
-        ss << indent(outputs[i].toJson(), 4);
-        if (i + 1 < outputs.size()) ss << ",";
-        ss << "\n";
+    j["inputs"] = inputs_array;
+    
+    json outputs_array = json::array();
+    for (const auto& output : outputs) {
+        json output_obj;
+        output_obj["receiver_public_key"] = output.receiver_public_key;
+        output_obj["amount"] = output.amount;
+        outputs_array.push_back(output_obj);
     }
-    ss << "  ]\n";
-
-    ss << "}";
-    return ss.str();
+    j["outputs"] = outputs_array;
+    
+    return j.dump(2);
 }
