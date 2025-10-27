@@ -19,6 +19,7 @@ void generate_transactions(const std::string& filename, int num_transactions){
     }
     user_file.close();
 
+    json j;
     for (int i = 0; i < num_transactions; i++) {
         int sender_index = user_dist(rng);
         int receiver_index = user_dist(rng);
@@ -30,13 +31,26 @@ void generate_transactions(const std::string& filename, int num_transactions){
         sort(sender_utxos.begin(), sender_utxos.end(), [](const UTXO& a, const UTXO& b) {
             return a.getAmount() > b.getAmount();
         });
+        double total_used = 0.0;
+        std::vector<TransactionInputs> inputs;
         for (auto utxo : sender_utxos) {
-            if (amount <= 0) break;
+            if (amount <= total_used) break;
             double utxo_amount = utxo.getAmount();
-            double used_amount = std::min(utxo_amount, amount);
-            fout << utxo.getTransactionID() << " " << utxo.getOutputIndex() << " " << private_keys[sender_index] << " ";
-            amount -= used_amount;
+            TransactionInputs input(utxo.getTransactionID(), utxo.getOutputIndex(), private_keys[sender_index]);
+            inputs.push_back(input);
+            total_used += utxo_amount;
         }
+        TransactionOutputs output1(public_keys[receiver_index], amount);
+        TransactionOutputs output2(public_keys[sender_index], total_used - amount);
+        std::string to_hash;
+        for (const auto& input : inputs) {
+            to_hash += input.toString();
+        }
+        to_hash += output1.toString() + output2.toString();
+        std::string transaction_id = SlaSimHash(to_hash);
+        Transaction transaction(transaction_id, inputs, { output1, output2 });
+        j.push_back(transaction.toJson());
     }
+    fout << j.dump(4);
     fout.close();
 }

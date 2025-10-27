@@ -1,7 +1,4 @@
 #include "transaction.h"
-#include "../include/nlohmann/json.hpp"
-
-using json = nlohmann::json;
 
 TransactionInputs::TransactionInputs(std::string previous_transaction_id_, int output_index_, std::string signature_)
     : previous_transaction_id(std::move(previous_transaction_id_)),
@@ -42,7 +39,7 @@ std::string Transaction::computeTransactionHash() const {
     return SlaSimHash(str);
 }
 
-std::string Transaction::toJson() const {
+json Transaction::toJson() const {
     json j;
     j["transaction_id"] = transaction_id;
     
@@ -64,6 +61,6 @@ std::string Transaction::toJson() const {
         outputs_array.push_back(output_obj);
     }
     j["outputs"] = outputs_array;
-    
-    return j.dump(2);
+
+    return j;
 }
