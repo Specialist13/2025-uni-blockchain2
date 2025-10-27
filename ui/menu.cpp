@@ -4,8 +4,9 @@ void displayMenu() {
     std::cout << "Hello, welcome to the SlaSimCoin Interface!" << std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     initializeBlockchain();
-    int choice = 0;
+    int choice;
     while (choice != 4) {
+        choice = 0;
         std::cout << "===== Blockchain Menu =====" << std::endl;
         std::cout << "1. Create New Transaction" << std::endl;
         std::cout << "2. View Blockchain" << std::endl;
@@ -31,7 +32,7 @@ void handleChoice(int choice) {
             break;
         case 3:
             std::cout << "Viewing UTXO set..." << std::endl;
-            // Call function to view UTXO set
+            UTXOSet::getInstance()->outputToConsole();
             break;
         case 4:
             std::cout << "Exiting menu." << std::endl;
@@ -51,6 +52,11 @@ void initializeBlockchain() {
         UTXOSet::getInstance()->saveToFile("./data/utxo_set.json");
         genesis_block.saveToFile("./data/blockchain.json");
         return;
+    }
+    else {
+        std::cout << "Loading existing blockchain..." << std::endl;
+        UTXOSet::getInstance()->loadFromFile("./data/utxo_set.json");
+        std::cout << "Blockchain loaded." << std::endl;
     }
     
     std::cout << "Blockchain initialized." << std::endl;
