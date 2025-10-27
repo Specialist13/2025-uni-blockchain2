@@ -7,6 +7,9 @@
 #include <fstream>
 #include "transaction.h"
 #include "hash_function.h"
+#include "../include/nlohmann/json.hpp"
+
+using json = nlohmann::json;
 
 class Block {
 private:
@@ -32,14 +35,14 @@ public:
 
     std::string toString() const;
 
-    std::string toJson() const;
+    json toJson() const;
 
     std::string computePreviousBlockHash() const;
 
     static std::string computeMerkleRoot(const std::vector<Transaction>& transactions);
 
     void outputBlockInfo() const;
-    void saveToJson(const std::string& path) const;
+    void saveToFile(const std::string& path) const;
 };
 
 #endif

@@ -9,7 +9,7 @@ void generate_transactions(const std::string& filename, int num_transactions){
 
     std::vector<std::string> public_keys, private_keys;
     std::vector<double> balances;
-    std::ifstream user_file("./data/users.txt");
+    std::ifstream user_file("./data/users.txt", std::ios::app);
 
     std::string first_name, last_name, public_key, private_key;
     double balance;
