@@ -4,6 +4,9 @@
 #include <string>
 #include <vector>
 #include "hash_function.h"
+#include "../include/nlohmann/json.hpp"
+
+using json = nlohmann::json;
 
 class TransactionInputs {
 private:
@@ -43,7 +46,7 @@ public:
     const std::vector<TransactionOutputs>& getOutputs() const;
 
     std::string toString() const;
-    std::string toJson() const;
+    json toJson() const;
 
     std::string computeTransactionHash() const;
 };
