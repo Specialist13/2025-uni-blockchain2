@@ -16,7 +16,7 @@ std::string SlaSimHash(std::string& input) {
 
     std::vector<int> numbers;
 
-    int num=0;
+    int num = 0;
 
     for (int i = 0; i < binary.size(); i++) {
         num += binary[i] << (7 - i%8);
@@ -31,11 +31,11 @@ std::string SlaSimHash(std::string& input) {
         total += n;
     }
 
-    std::vector<int> xor_results={binary[0], binary[1], binary[2], binary[3]};
+    std::vector<int> xor_results = {binary[0], binary[1], binary[2], binary[3]};
     std::vector<int> temp;
     for (int i = 4; i < binary.size(); i++) {
-        temp.push_back(xor_results[i%4] ^ binary[i]);
-        if (i%4==3){
+        temp.push_back(xor_results[i % 4] ^ binary[i]);
+        if (i % 4 == 3) {
             xor_results = temp;
             temp.clear();
         }
@@ -57,7 +57,7 @@ std::string SlaSimHash(std::string& input) {
         int zero_count = 0;
         int one_count = 0;
 
-        for (int j = input.size()*i; j < input.size()*(i+1); j ++) {
+        for (int j = input.size() * i; j < input.size() * (i + 1); j++) {
             if (binary[j] == 0) {
                 zero_count++;
             } else {
@@ -65,9 +65,9 @@ std::string SlaSimHash(std::string& input) {
             }
         }
 
-        long long partial_numerical_hash=1;
-        for (int j = 0; j < one_count+offset + 10; j++) {
-            partial_numerical_hash *= (zero_count + total + 10 + partial_numerical_hash%10);
+        long long partial_numerical_hash = 1;
+        for (int j = 0; j < one_count + offset + 10; j++) {
+            partial_numerical_hash *= (zero_count + total + 10 + partial_numerical_hash % 10);
             partial_numerical_hash % (1LL << 32) == 0 ? partial_numerical_hash -= 1 : partial_numerical_hash;
             partial_numerical_hash %= (1LL << 32);
         }

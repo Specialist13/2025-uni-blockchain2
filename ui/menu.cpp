@@ -28,7 +28,7 @@ void handleChoice(int choice) {
             break;
         case 2:
             std::cout << "Viewing blockchain..." << std::endl;
-            // Call function to view blockchain
+            // TODO: Call function to view blockchain
             break;
         case 3:
             std::cout << "Viewing UTXO set..." << std::endl;
