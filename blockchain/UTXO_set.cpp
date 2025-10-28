@@ -43,6 +43,15 @@ void UTXOSet::clear() {
     utxos.clear();
 }
 
+void UTXOSet::outputToConsole() const {
+    for (const auto& utxo : utxos) {
+        std::cout << "UTXO - TxID: " << utxo.getTransactionID()
+                  << ", Output Index: " << utxo.getOutputIndex()
+                  << ", Receiver: " << utxo.getReceiverPublicKey()
+                  << ", Amount: " << utxo.getAmount() << std::endl;
+    }
+}
+
 void UTXOSet::saveToFile(const std::string& filename) const {
     json j;
     for (const auto& utxo : utxos) {

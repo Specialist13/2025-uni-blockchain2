@@ -71,42 +71,36 @@ std::string Block::computeMerkleRoot(const std::vector<Transaction>& transaction
 }
 
 void Block::outputBlockInfo() const {
-    std::string json = toJson();
-
-    std::cout << json << std::endl;
-
-    saveToJson("./data/blockchain.json");
+    json j = toJson();
+    std::cout << j.dump(4) << std::endl;
 }
 
-std::string Block::toJson() const {
-    std::ostringstream ss;
-    ss << "{\n";
-    ss << "  \"previous_block_hash\": \"" << previous_block_hash << "\",\n";
-    ss << "  \"merkle_root_hash\": \"" << merkle_root_hash << "\",\n";
-    ss << "  \"version\": " << version << ",\n";
-    ss << "  \"difficulty\": " << difficulty << ",\n";
-    ss << "  \"timestamp\": " << timestamp << ",\n";
-    ss << "  \"nonce\": " << nonce << ",\n";
-    ss << "  \"transactions\": [\n";
+json Block::toJson() const {
+    json j;
+    j["previous_block_hash"] = previous_block_hash;
+    j["merkle_root_hash"] = merkle_root_hash;
+    j["version"] = version;
+    j["difficulty"] = difficulty;
+    j["timestamp"] = timestamp;
+    j["nonce"] = nonce;
 
-    for (size_t i = 0; i < transactions.size(); ++i) {
-        ss << indent_block(transactions[i].toJson(), 4);
-        if (i + 1 < transactions.size()) ss << ",";
-        ss << "\n";
+    json txs = json::array();
+    for (const auto& tx : transactions) {
+        txs.push_back(tx.toJson());
     }
+    j["transactions"] = txs;
 
-    ss << "  ]\n";
-    ss << "}";
-    return ss.str();
+    return j;
 }
 
 
-void Block::saveToJson(const std::string& path) const {
+void Block::saveToFile(const std::string& path) const {
     std::ofstream ofs(path);
     if (!ofs.is_open()) {
         std::cerr << "Failed to open file for writing: " << path << std::endl;
         return;
     }
-    ofs << toJson();
+    json j = toJson();
+    ofs << j.dump(4);
     ofs.close();
 }

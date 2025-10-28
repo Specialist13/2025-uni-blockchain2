@@ -2,8 +2,8 @@
 #define UTXO_SET_H
 
 #include <unordered_set>
-#include <string>
 #include <fstream>
+#include <iostream>
 #include "UTXO.h"
 
 class UTXOSet {
@@ -32,6 +32,8 @@ public:
     std::vector<UTXO> getAllUTXOsForAddress(const std::string& publicKey) const;
     double getBalanceForAddress(const std::string& publicKey) const;
     void clear();
+
+    void outputToConsole() const;
 
     void saveToFile(const std::string& filename) const;
     void loadFromFile(const std::string& filename);

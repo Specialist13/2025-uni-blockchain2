@@ -1,0 +1,17 @@
+#ifndef MENU_H
+#define MENU_H
+
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <thread>
+#include <chrono>
+#include "../helpers/generate_users.h"
+#include "../helpers/generate_transactions.h"
+#include "../helpers/genesis_block_creation.h"
+
+void displayMenu();
+void handleChoice(int choice);
+void initializeBlockchain();
+
+#endif
