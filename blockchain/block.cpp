@@ -70,6 +70,37 @@ std::string Block::computeMerkleRoot(const std::vector<Transaction>& transaction
     return layer.front();
 }
 
+bool Block::hasLeadingZeros(const std::string& hexHash, int leadingZeros) {
+    if (leadingZeros <= 0) return true;
+    for (int i = 0; i < leadingZeros; ++i) {
+        if (i >= hexHash.size()) return false;
+        if (hexHash[i] != '0') return false;
+    }
+    return true;
+}
+
+bool Block::mineBlock(int leadingZeros) {
+    // TODO: Ensure merkle root is consistent with current transactions
+    merkle_root_hash = Block::computeMerkleRoot(transactions);
+
+    long long iterations = 0;
+    while (true) {
+        std::string header = previous_block_hash + merkle_root_hash + std::to_string(version) + std::to_string(difficulty) + std::to_string(timestamp) + std::to_string(nonce);
+        std::string tmp = header;
+        std::string hash = SlaSimHash(tmp);
+        if (Block::hasLeadingZeros(hash, leadingZeros)) {
+            std::cout << "Mined block with nonce=" << nonce << ", hash=" << hash << std::endl;
+            return true;
+        }
+        ++nonce;
+        ++iterations;
+        if (iterations % 500000 == 0) {
+            std::cout << "Mining... nonce=" << nonce << " lastHashPrefix=" << hash.substr(0, 8) << std::endl;
+        }
+        // TODO: add a guard to break after very long attempts (omitted for v0.1)
+    }
+}
+
 void Block::outputBlockInfo() const {
     json j = toJson();
     std::cout << j.dump(4) << std::endl;
