@@ -43,6 +43,9 @@ public:
 
     void outputBlockInfo() const;
     void saveToFile(const std::string& path) const;
+
+    bool mineBlock(int leadingZeros = 3);
+    static bool hasLeadingZeros(const std::string& hexHash, int leadingZeros);
 };
 
 #endif
