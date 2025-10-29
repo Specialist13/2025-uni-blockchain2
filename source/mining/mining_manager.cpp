@@ -11,6 +11,7 @@ MiningManager::MiningManager(const std::string& queueFile,
 }
 
 void MiningManager::startMining(int txPerBlock) {
+    queue.loadFromFile();
     std::cout << "Starting mining. Pending txs: " << queue.size() << std::endl;
     while (queue.size() > 0) {
         queue.loadFromFile();
