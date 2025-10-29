@@ -18,6 +18,14 @@ private:
 
     int difficulty;
 
+    // Stats
+    size_t totalBlocksMined = 0;
+    unsigned long long totalHashesTried = 0ULL;
+    double lastBlockSeconds = 0.0;
+    unsigned long long lastBlockHashes = 0ULL;
+    double lastHashrateHps = 0.0; // hashes per second
+    double avgHashrateHps = 0.0;
+
 public:
     MiningManager(const std::string& queueFile,
                   const std::string& blockchainFile,
@@ -27,6 +35,11 @@ public:
     std::vector<Transaction> selectValidTransactions(int count);
     bool mineAndCommitBlock(const std::vector<Transaction>& txs);
     void displayStatistics() const;
+
+    size_t getTotalBlocksMined() const { return totalBlocksMined; }
+    double getLastHashrate() const { return lastHashrateHps; }
+    double getAverageHashrate() const { return avgHashrateHps; }
+    int getDifficulty() const { return difficulty; }
 };
 
 #endif

@@ -96,7 +96,11 @@ void handleChoice(int choice) {
             break;
         }
         case 5:
-            if (g_miner) g_miner->displayStatistics();
+            if (g_miner) {
+                std::cout << "\n=== Mining Statistics ===" << std::endl;
+                g_miner->displayStatistics();
+                std::cout << "========================\n" << std::endl;
+            }
             else std::cout << "Miner not initialized." << std::endl;
             break;
         case 6: {
