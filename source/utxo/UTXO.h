@@ -4,8 +4,8 @@
 #include <string>
 #include <vector>
 #include <functional>
-#include "transaction.h"
-#include "../include/nlohmann/json.hpp"
+#include "../transaction/transaction.h"
+#include "../../include/nlohmann/json.hpp"
 
 using json = nlohmann::json;
 

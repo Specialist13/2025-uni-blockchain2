@@ -5,9 +5,9 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
-#include "transaction.h"
-#include "hash_function.h"
-#include "../include/nlohmann/json.hpp"
+#include "../transaction/transaction.h"
+#include "../hash_function.h"
+#include "../../include/nlohmann/json.hpp"
 
 using json = nlohmann::json;
 

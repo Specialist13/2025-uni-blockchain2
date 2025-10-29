@@ -6,9 +6,9 @@
 #include <random>
 #include <vector>
 #include <algorithm>
-#include "../blockchain/hash_function.h"
-#include "../blockchain/UTXO_set.h"
-#include "../blockchain/transaction.h"
+#include "../source/hash_function.h"
+#include "../source/utxo/UTXO_set.h"
+#include "../source/transaction/transaction.h"
 #include "../include/nlohmann/json.hpp"
 
 void generate_transactions(const std::string& filename, int num_transactions);

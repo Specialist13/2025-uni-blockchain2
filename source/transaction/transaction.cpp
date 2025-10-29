@@ -1,5 +1,5 @@
 #include "transaction.h"
-#include "UTXO.h"
+#include "../utxo/UTXO.h"
 
 TransactionInputs::TransactionInputs(std::string previous_transaction_id_, int output_index_, std::string signature_)
     : previous_transaction_id(std::move(previous_transaction_id_)),

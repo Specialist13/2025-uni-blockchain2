@@ -4,10 +4,10 @@
 #include <string>
 #include <vector>
 #include <fstream>
-#include "../blockchain/block.h"
-#include "../blockchain/transaction.h"
-#include "../blockchain/hash_function.h"
-#include "../blockchain/UTXO_set.h"
+#include "../source/block/block.h"
+#include "../source/transaction/transaction.h"
+#include "../source/hash_function.h"
+#include "../source/utxo/UTXO_set.h"
 
 Block createGenesisBlock();
 

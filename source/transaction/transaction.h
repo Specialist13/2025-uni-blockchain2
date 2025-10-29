@@ -3,8 +3,8 @@
 
 #include <string>
 #include <vector>
-#include "hash_function.h"
-#include "../include/nlohmann/json.hpp"
+#include "../hash_function.h"
+#include "../../include/nlohmann/json.hpp"
 
 using json = nlohmann::json;
 
