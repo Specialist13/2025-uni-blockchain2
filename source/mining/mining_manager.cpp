@@ -53,9 +53,20 @@ bool MiningManager::mineAndCommitBlock(const std::vector<Transaction>& txs) {
     Block block(previousHash, merkle, version, difficulty, timestamp, nonce, txs);
 
     std::cout << "Mining block with " << txs.size() << " txs..." << std::endl;
+    const auto start = std::chrono::steady_clock::now();
     if (!block.mineBlock(difficulty)) {
         return false;
     }
+    const auto end = std::chrono::steady_clock::now();
+    lastBlockSeconds = std::chrono::duration<double>(end - start).count();
+    lastBlockHashes = static_cast<unsigned long long>(block.getNonce());
+    lastHashrateHps = (lastBlockSeconds > 0.0) ? (static_cast<double>(lastBlockHashes) / lastBlockSeconds) : 0.0;
+    ++totalBlocksMined;
+    totalHashesTried += lastBlockHashes;
+    // Rolling simple average per-block hashrate approximation
+    avgHashrateHps = (totalBlocksMined > 0)
+        ? ((avgHashrateHps * (static_cast<double>(totalBlocksMined - 1)) + lastHashrateHps) / static_cast<double>(totalBlocksMined))
+        : lastHashrateHps;
 
     // Process: transactions (update UTXO set)
     for (const Transaction& tx : txs) {
@@ -79,4 +90,8 @@ bool MiningManager::mineAndCommitBlock(const std::vector<Transaction>& txs) {
 
 void MiningManager::displayStatistics() const {
     std::cout << "Chain height: " << chain.getBlockCount() << std::endl;
+    std::cout << "Blocks mined (session): " << totalBlocksMined << std::endl;
+    std::cout << "Last block: hashes=" << lastBlockHashes << ", time=" << lastBlockSeconds << "s, hashrate="
+              << lastHashrateHps << " H/s" << std::endl;
+    std::cout << "Avg hashrate: " << avgHashrateHps << " H/s, Difficulty: " << difficulty << std::endl;
 }
