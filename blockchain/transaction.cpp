@@ -1,4 +1,5 @@
 #include "transaction.h"
+#include "UTXO.h"
 
 TransactionInputs::TransactionInputs(std::string previous_transaction_id_, int output_index_, std::string signature_)
     : previous_transaction_id(std::move(previous_transaction_id_)),
@@ -27,9 +28,9 @@ const std::vector<TransactionOutputs>& Transaction::getOutputs() const { return 
 
 std::string Transaction::toString() const {
     std::string serial;
-    for (const auto& input : inputs)
+    for (const TransactionInputs& input : inputs)
         serial += input.toString();
-    for (const auto& output : outputs)
+    for (const TransactionOutputs& output : outputs)
         serial += output.toString();
     return transaction_id + serial;
 }
@@ -44,7 +45,7 @@ json Transaction::toJson() const {
     j["transaction_id"] = transaction_id;
     
     json inputs_array = json::array();
-    for (const auto& input : inputs) {
+    for (const TransactionInputs& input : inputs) {
         json input_obj;
         input_obj["previous_transaction_id"] = input.previous_transaction_id;
         input_obj["output_index"] = input.output_index;
@@ -54,7 +55,7 @@ json Transaction::toJson() const {
     j["inputs"] = inputs_array;
     
     json outputs_array = json::array();
-    for (const auto& output : outputs) {
+    for (const TransactionOutputs& output : outputs) {
         json output_obj;
         output_obj["receiver_public_key"] = output.receiver_public_key;
         output_obj["amount"] = output.amount;
@@ -63,4 +64,85 @@ json Transaction::toJson() const {
     j["outputs"] = outputs_array;
 
     return j;
+}
+
+bool Transaction::isValid() const {
+    if (inputs.empty() || outputs.empty()) {
+        return false;
+    }
+    
+    if (transaction_id.empty()) {
+        return false;
+    }
+    
+    if (!validateOutputs()) {
+        return false;
+    }
+    
+    return true;
+}
+
+bool Transaction::validateInputs(const std::vector<UTXO>& available_utxos) const {
+    // Check if all inputs reference valid UTXOs by going through the available UTXOs and
+    // Checking if the previous transaction id and output index match
+    for (const TransactionInputs& input : inputs) {
+        bool found = false;
+        for (const UTXO& utxo : available_utxos) {
+            if (utxo.getTransactionID() == input.getPreviousTransactionId() && 
+                utxo.getOutputIndex() == input.getOutputIndex()) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool Transaction::validateOutputs() const {
+    for (const TransactionOutputs& output : outputs) {
+        if (output.getAmount() <= 0) {
+            return false;
+        }
+
+        if (output.getReceiverPublicKey().empty()) {
+            return false;
+        }
+    }
+    return true;
+}
+
+double Transaction::getTotalInputAmount(const std::vector<UTXO>& available_utxos) const {
+    double total = 0.0;
+    for (const TransactionInputs& input : inputs) {
+        for (const UTXO& utxo : available_utxos) {
+            if (utxo.getTransactionID() == input.getPreviousTransactionId() && 
+                utxo.getOutputIndex() == input.getOutputIndex()) {
+                total += utxo.getAmount();
+                break;
+            }
+        }
+    }
+    return total;
+}
+
+double Transaction::getTotalOutputAmount() const {
+    double total = 0.0;
+    for (const TransactionOutputs& output : outputs) {
+        total += output.getAmount();
+    }
+    return total;
+}
+
+bool Transaction::hasValidSignature() const {
+    // Simplified signature verification - just check if signature is not empty
+    // TODO: verify cryptographic signatures
+    for (const TransactionInputs& input : inputs) {
+        if (input.getSignature().empty()) {
+            return false;
+        }
+    }
+    return true;
 }
