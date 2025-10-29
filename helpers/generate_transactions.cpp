@@ -35,7 +35,9 @@ void generate_transactions(const std::string& filename, int num_transactions){
         for (auto utxo : sender_utxos) {
             if (amount <= total_used) break;
             double utxo_amount = utxo.getAmount();
-            TransactionInputs input(utxo.getTransactionID(), utxo.getOutputIndex(), private_keys[sender_index]);
+            std::string signature_to_hash = utxo.getTransactionID() + std::to_string(utxo.getOutputIndex()) + private_keys[sender_index];
+            std::string signature = SlaSimHash(signature_to_hash); 
+            TransactionInputs input(utxo.getTransactionID(), utxo.getOutputIndex(), signature);
             inputs.push_back(input);
             total_used += utxo_amount;
         }
