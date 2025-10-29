@@ -11,8 +11,10 @@ MiningManager::MiningManager(const std::string& queueFile,
 }
 
 void MiningManager::startMining(int txPerBlock) {
+    queue.loadFromFile();
     std::cout << "Starting mining. Pending txs: " << queue.size() << std::endl;
     while (queue.size() > 0) {
+        queue.loadFromFile();
         std::vector<Transaction> txs = selectValidTransactions(txPerBlock);
         if (txs.empty()) {
             std::cout << "No valid transactions available. Stopping." << std::endl;
@@ -27,7 +29,8 @@ void MiningManager::startMining(int txPerBlock) {
 }
 
 std::vector<Transaction> MiningManager::selectValidTransactions(int count) {
-    std::vector<Transaction> candidates = queue.getRandomTransactions(count * 2); // over-select then filter
+    int multiplier = 10;
+    std::vector<Transaction> candidates = queue.getRandomTransactions(std::max(count * multiplier, count));
     std::vector<Transaction> selected;
     selected.reserve(count);
 

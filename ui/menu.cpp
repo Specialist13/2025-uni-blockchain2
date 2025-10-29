@@ -32,6 +32,9 @@ void handleChoice(int choice) {
             std::cout << "How many transactions would you like to create? ";
             std::cin >> num_transactions;
             generate_transactions("./data/transaction_queue.json", num_transactions);
+            if (g_miner) {
+                std::cout << "Reloading transaction queue..." << std::endl;
+            }
             break;
         case 2:
             std::cout << "Viewing blockchain..." << std::endl;
