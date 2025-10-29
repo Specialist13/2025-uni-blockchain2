@@ -1,6 +1,6 @@
 CXX = g++
 CXXFLAGS = -std=c++17
-SRC = ${wildcard ./blockchain/*.cpp ./helpers/*.cpp ./ui/*.cpp main.cpp}
+SRC = ${wildcard ./source/*.cpp ./source/block/*.cpp ./source/transaction/*.cpp ./source/utxo/*.cpp ./helpers/*.cpp ./ui/*.cpp main.cpp}
 TARGET = main
 
 all:

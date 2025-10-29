@@ -5,7 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include "UTXO.h"
-#include "transaction.h"
+#include "../transaction/transaction.h"
 
 class UTXOSet {
 private:
