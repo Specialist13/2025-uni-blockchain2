@@ -35,7 +35,52 @@ void handleChoice(int choice) {
             break;
         case 2:
             std::cout << "Viewing blockchain..." << std::endl;
-            // TODO: Call function to view blockchain
+            {
+                BlockchainStorage storage("./data/blockchain.json");
+                std::vector<Block> blocks = storage.load();
+                if (blocks.empty()) {
+                    std::cout << "No blocks found." << std::endl;
+                    break;
+                }
+
+                std::cout << "Total blocks: " << blocks.size() << std::endl;
+                for (size_t i = 0; i < blocks.size(); ++i) {
+                    const Block& b = blocks[i];
+                    std::string prev = b.getPreviousBlockHash();
+                    std::string prevShort = prev.size() >= 8 ? prev.substr(0, 8) : prev;
+                    std::cout << "[#" << i << "] prev=" << prevShort
+                              << " merkle=" << b.getMerkleRootHash().substr(0, 8)
+                              << " ts=" << b.getTimestamp()
+                              << " txs=" << b.getTransactions().size() << std::endl;
+                }
+
+                std::cout << "Enter block index for details (-1 to return): ";
+                int idx; std::cin >> idx;
+                if (idx >= 0 && idx < static_cast<int>(blocks.size())) {
+                    const Block& b = blocks[static_cast<size_t>(idx)];
+                    std::cout << "Previous Hash:  " << b.getPreviousBlockHash() << std::endl;
+                    std::cout << "Merkle Root:    " << b.getMerkleRootHash() << std::endl;
+                    std::cout << "Version:        " << b.getVersion() << std::endl;
+                    std::cout << "Difficulty:     " << b.getDifficulty() << std::endl;
+                    std::cout << "Timestamp:      " << b.getTimestamp() << std::endl;
+                    std::cout << "Nonce:          " << b.getNonce() << std::endl;
+                    std::cout << "Transactions:   " << b.getTransactions().size() << std::endl;
+
+                    const auto& txs = b.getTransactions();
+                    for (size_t t = 0; t < txs.size(); ++t) {
+                        const Transaction& tx = txs[t];
+                        std::cout << "  - tx[#" << t << "] id=" << tx.getTransactionId()
+                                  << " inputs=" << tx.getInputs().size()
+                                  << " outputs=" << tx.getOutputs().size() << std::endl;
+                    }
+
+                    size_t totalTxs = 0;
+                    for (const auto& blk : blocks) totalTxs += blk.getTransactions().size();
+                    std::cout << "\n[Stats] Total Blocks=" << blocks.size()
+                              << ", Total Transactions=" << totalTxs
+                              << ", UTXO Set Size=" << UTXOSet::getInstance()->size() << std::endl;
+                }
+            }
             break;
         case 3:
             std::cout << "Viewing UTXO set..." << std::endl;
