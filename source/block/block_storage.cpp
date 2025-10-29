@@ -22,36 +22,52 @@ std::vector<Block> BlockchainStorage::load() const {
     if (!ifs) return blocks;
     json j;
     ifs >> j;
-    for (const auto& item : j) {
-        std::string previous_block_hash = item["previous_block_hash"];
-        std::string merkle_root_hash = item["merkle_root_hash"];
-        int version = item["version"];
-        int difficulty = item["difficulty"];
-        long long timestamp = item["timestamp"];
-        long long nonce = item["nonce"];
+
+    auto parse_block = [](const json& item) -> Block {
+        std::string previous_block_hash = item.at("previous_block_hash");
+        std::string merkle_root_hash = item.at("merkle_root_hash");
+        int version = item.at("version");
+        int difficulty = item.at("difficulty");
+        long long timestamp = item.at("timestamp");
+        long long nonce = item.at("nonce");
 
         std::vector<Transaction> txs;
-        for (const auto& txj : item["transactions"]) {
-            std::string txid = txj["transaction_id"];
-            std::vector<TransactionInputs> ins;
-            std::vector<TransactionOutputs> outs;
-            for (const auto& inj : txj["inputs"]) {
-                ins.emplace_back(
-                    inj["previous_transaction_id"],
-                    inj["output_index"],
-                    inj["signature"]
-                );
+        if (item.contains("transactions") && item["transactions"].is_array()) {
+            for (const auto& txj : item["transactions"]) {
+                std::string txid = txj.at("transaction_id");
+                std::vector<TransactionInputs> ins;
+                std::vector<TransactionOutputs> outs;
+                if (txj.contains("inputs") && txj["inputs"].is_array()) {
+                    for (const auto& inj : txj["inputs"]) {
+                        ins.emplace_back(
+                            inj.at("previous_transaction_id"),
+                            inj.at("output_index"),
+                            inj.at("signature")
+                        );
+                    }
+                }
+                if (txj.contains("outputs") && txj["outputs"].is_array()) {
+                    for (const auto& outj : txj["outputs"]) {
+                        outs.emplace_back(
+                            outj.at("receiver_public_key"),
+                            outj.at("amount")
+                        );
+                    }
+                }
+                txs.emplace_back(txid, ins, outs);
             }
-            for (const auto& outj : txj["outputs"]) {
-                outs.emplace_back(
-                    outj["receiver_public_key"],
-                    outj["amount"]
-                );
-            }
-            txs.emplace_back(txid, ins, outs);
         }
+        return Block(previous_block_hash, merkle_root_hash, version, difficulty, timestamp, nonce, txs);
+    };
 
-        blocks.emplace_back(previous_block_hash, merkle_root_hash, version, difficulty, timestamp, nonce, txs);
+    if (j.is_array()) {
+        for (const auto& item : j) {
+            if (!item.is_object()) continue;
+            blocks.emplace_back(parse_block(item));
+        }
+    } else if (j.is_object()) {
+        // Backward compatibility: single block object stored at top-level
+        blocks.emplace_back(parse_block(j));
     }
     return blocks;
 }
