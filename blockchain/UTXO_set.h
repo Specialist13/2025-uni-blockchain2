@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include "UTXO.h"
+#include "transaction.h"
 
 class UTXOSet {
 private:
@@ -37,5 +38,11 @@ public:
 
     void saveToFile(const std::string& filename) const;
     void loadFromFile(const std::string& filename);
+    
+    bool spendUTXOs(const std::vector<TransactionInputs>& inputs);
+    void addTransactionOutputs(const std::string& transaction_id, const std::vector<TransactionOutputs>& outputs);
+    bool validateTransaction(const Transaction& tx) const;
+    void processTransaction(const Transaction& tx);
+    std::vector<UTXO> getUTXOsForTransaction(const std::string& transaction_id) const;
 };
 #endif
