@@ -84,5 +84,3 @@ void TransactionQueue::clear() {
 size_t TransactionQueue::size() const {
     return pending_transactions.size();
 }
-
-
