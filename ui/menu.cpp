@@ -2,6 +2,7 @@
 
 static int g_difficulty = 3;
 static int g_txPerBlock = 100;
+static int g_maxBlocksPerRun = 1;
 static std::unique_ptr<MiningManager> g_miner;
 
 void displayMenu() {
@@ -94,8 +95,10 @@ void handleChoice(int choice) {
                 std::cout << "Miner not initialized." << std::endl;
                 break;
             }
-            std::cout << "Starting mining with txPerBlock=" << g_txPerBlock << ", difficulty=" << g_difficulty << std::endl;
-            g_miner->startMining(g_txPerBlock);
+            std::cout << "Starting mining with txPerBlock=" << g_txPerBlock
+                      << ", difficulty=" << g_difficulty
+                      << ", maxBlocks=" << g_maxBlocksPerRun << std::endl;
+            g_miner->startMining(g_txPerBlock, g_maxBlocksPerRun);
             break;
         }
         case 5:
@@ -111,6 +114,8 @@ void handleChoice(int choice) {
             int d; std::cin >> d; if (d > 0) g_difficulty = d;
             std::cout << "Enter tx per block (current: " << g_txPerBlock << "): ";
             int t; std::cin >> t; if (t > 0) g_txPerBlock = t;
+            std::cout << "Enter max blocks per run (current: " << g_maxBlocksPerRun << "): ";
+            int mb; std::cin >> mb; if (mb > 0) g_maxBlocksPerRun = mb;
             g_miner = std::make_unique<MiningManager>("./data/transaction_queue.json", "./data/blockchain.json", g_difficulty);
             std::cout << "Mining configuration updated." << std::endl;
             break;

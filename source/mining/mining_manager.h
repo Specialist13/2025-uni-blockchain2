@@ -31,7 +31,7 @@ public:
                   const std::string& blockchainFile,
                   int difficulty_ = 3);
 
-    void startMining(int txPerBlock = 100);
+    void startMining(int txPerBlock = 100, int maxBlocks = 2147483647);
     std::vector<Transaction> selectValidTransactions(int count);
     bool mineAndCommitBlock(const std::vector<Transaction>& txs);
     void displayStatistics() const;
