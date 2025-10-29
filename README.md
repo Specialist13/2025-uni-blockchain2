@@ -162,3 +162,21 @@ for (size_t i = 0; i < blocks.size(); ++i) {
 
 ## Screenshots
 CLI images to showcase how the tool works
+
+![CLI 1](images/cli_1.png)
+Startup message and main menu after loading existing chain data.
+
+![CLI 2](images/cli_2.png)
+Blockchain list and block details: select an index to inspect a block.
+
+![CLI 3](images/cli_3.png)
+UTXO set viewer: each unspent output with tx id, index, receiver, and amount.
+
+![CLI 4](images/cli_4.png)
+Mining in progress: selected transactions, successful processing, nonce, and block hash.
+
+![CLI 5](images/cli_5.png)
+Mining statistics: last hashrate, average hashrate, difficulty.
+
+![CLI 6](images/cli_6.png)
+Configure mining: set difficulty and transactions per block.
