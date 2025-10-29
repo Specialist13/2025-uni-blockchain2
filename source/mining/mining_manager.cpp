@@ -10,10 +10,11 @@ MiningManager::MiningManager(const std::string& queueFile,
     chain.setBlocks(storage.load());
 }
 
-void MiningManager::startMining(int txPerBlock) {
+void MiningManager::startMining(int txPerBlock, int maxBlocks) {
     queue.loadFromFile();
     std::cout << "Starting mining. Pending txs: " << queue.size() << std::endl;
-    while (queue.size() > 0) {
+    int minedThisRun = 0;
+    while (queue.size() > 0 && minedThisRun < maxBlocks) {
         queue.loadFromFile();
         std::vector<Transaction> txs = selectValidTransactions(txPerBlock);
         if (txs.empty()) {
@@ -24,6 +25,7 @@ void MiningManager::startMining(int txPerBlock) {
             std::cout << "Failed to mine/commit block. Stopping." << std::endl;
             break;
         }
+        ++minedThisRun;
         displayStatistics();
     }
 }
