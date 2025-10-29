@@ -122,19 +122,16 @@ bool UTXOSet::validateTransaction(const Transaction& tx) const {
 }
 
 void UTXOSet::processTransaction(const Transaction& tx) {
-    // Validate transaction first
     if (!validateTransaction(tx)) {
         std::cerr << "Transaction validation failed: " << tx.getTransactionId() << std::endl;
         return;
     }
     
-    // Spend input UTXOs
     if (!spendUTXOs(tx.getInputs())) {
         std::cerr << "Failed to spend UTXOs for transaction: " << tx.getTransactionId() << std::endl;
         return;
     }
     
-    // Add output UTXOs
     addTransactionOutputs(tx.getTransactionId(), tx.getOutputs());
     
     std::cout << "Successfully processed transaction: " << tx.getTransactionId() << std::endl;
