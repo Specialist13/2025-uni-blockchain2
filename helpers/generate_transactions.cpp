@@ -2,7 +2,13 @@
 #include <iostream>
 
 void generate_transactions(const std::string& filename, int num_transactions){
-    std::ofstream fout(filename);
+    json existing = json::array();
+    {
+        std::ifstream fin(filename);
+        if (fin) {
+            try { fin >> existing; } catch (...) { existing = json::array(); }
+        }
+    }
     std::mt19937 rng(std::random_device{}());
     std::uniform_int_distribution<int> user_dist(0, 999);
     std::uniform_real_distribution<double> balance_dist(0.01, 1.02);
@@ -18,7 +24,7 @@ void generate_transactions(const std::string& filename, int num_transactions){
     }
     user_file.close();
 
-    json j;
+    json j = existing;
     for (int i = 0; i < num_transactions; i++) {
         int sender_index = user_dist(rng);
         int receiver_index = user_dist(rng);
@@ -52,6 +58,7 @@ void generate_transactions(const std::string& filename, int num_transactions){
         Transaction transaction(transaction_id, inputs, { output1, output2 });
         j.push_back(transaction.toJson());
     }
+    std::ofstream fout(filename);
     fout << j.dump(4);
     fout.close();
 }

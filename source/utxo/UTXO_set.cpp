@@ -107,8 +107,10 @@ bool UTXOSet::validateTransaction(const Transaction& tx) const {
     
     double input_amount = tx.getTotalInputAmount(available_utxos);
     double output_amount = tx.getTotalOutputAmount();
+    // epsilon to avoid floating point precision issues
+    const double EPS = 1e-8;
     
-    if (input_amount < output_amount) {
+    if (input_amount + EPS < output_amount) {
         std::cerr << "Insufficient funds: input=" << input_amount 
                   << " output=" << output_amount << std::endl;
         return false;
