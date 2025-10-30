@@ -31,8 +31,8 @@ void generate_transactions(const std::string& filename, int num_transactions){
         while (receiver_index == sender_index) {
             receiver_index = user_dist(rng);
         }
-        double amount = UTXOSet::getInstance()->getBalanceForAddress(public_keys[sender_index]) * balance_dist(rng);
-        std::vector<UTXO> sender_utxos = UTXOSet::getInstance()->getAllUTXOsForAddress(public_keys[sender_index]);
+        double amount = UTXOSet::getInstance()->getAvailableBalanceForAddress(public_keys[sender_index]) * pow(balance_dist(rng), 3);
+        std::vector<UTXO> sender_utxos = UTXOSet::getInstance()->getAvailableUTXOsForAddress(public_keys[sender_index]);
         sort(sender_utxos.begin(), sender_utxos.end(), [](const UTXO& a, const UTXO& b) {
             return a.getAmount() > b.getAmount();
         });
@@ -52,6 +52,11 @@ void generate_transactions(const std::string& filename, int num_transactions){
         std::string to_hash;
         for (const auto& input : inputs) {
             to_hash += input.toString();
+        }
+        for (const auto& input : inputs) {
+            UTXOSet::getInstance()->reserveUTXO(
+                UTXO(input.getPreviousTransactionId(), input.getOutputIndex(), "", 0.0)
+            );
         }
         to_hash += output1.toString() + output2.toString();
         std::string transaction_id = SlaSimHash(to_hash);

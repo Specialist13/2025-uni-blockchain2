@@ -12,6 +12,8 @@ private:
     static UTXOSet* instance;
     std::unordered_set<UTXO> utxos;
 
+    std::unordered_set<UTXO> reserved_utxos;
+
     UTXOSet() {};
     
     UTXOSet(const UTXOSet&) = delete;
@@ -29,6 +31,12 @@ public:
     bool removeUTXO(const UTXO& utxo);
     bool containsUTXO(const UTXO& utxo) const;
     size_t size() const;
+
+    bool reserveUTXO(const UTXO& utxo);
+    bool unreserveUTXO(const UTXO& utxo);
+    bool isReserved(const UTXO& utxo) const;
+    std::vector<UTXO> getAvailableUTXOsForAddress(const std::string& publicKey) const;
+    double getAvailableBalanceForAddress(const std::string& publicKey) const;
 
     std::vector<UTXO> getAllUTXOsForAddress(const std::string& publicKey) const;
     double getBalanceForAddress(const std::string& publicKey) const;
