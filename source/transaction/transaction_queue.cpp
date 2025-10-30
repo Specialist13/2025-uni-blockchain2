@@ -15,8 +15,8 @@ void TransactionQueue::loadFromFile() {
     if (!ifs) return;
     json j;
     ifs >> j;
+
     for (const auto& item : j) {
-        // Each item is a Transaction JSON object
         std::string transaction_id = item["transaction_id"];
         std::vector<TransactionInputs> inputs;
         std::vector<TransactionOutputs> outputs;
@@ -27,12 +27,13 @@ void TransactionQueue::loadFromFile() {
                 in["output_index"],
                 in["signature"]
             );
+            // Reserve this UTXO
+            UTXO utxo(in["previous_transaction_id"], in["output_index"], "", 0.0);
+            UTXOSet::getInstance()->reserveUTXO(utxo);
         }
+
         for (const auto& out : item["outputs"]) {
-            outputs.emplace_back(
-                out["receiver_public_key"],
-                out["amount"]
-            );
+            outputs.emplace_back(out["receiver_public_key"], out["amount"]);
         }
 
         pending_transactions.emplace_back(transaction_id, inputs, outputs);

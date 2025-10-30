@@ -19,6 +19,29 @@ size_t UTXOSet::size() const {
     return utxos.size();
 }
 
+bool UTXOSet::reserveUTXO(const UTXO& utxo) {
+    if (utxos.find(utxo) == utxos.end()) return false; // must exist
+    return reserved_utxos.insert(utxo).second;
+}
+
+bool UTXOSet::unreserveUTXO(const UTXO& utxo) {
+    return reserved_utxos.erase(utxo) > 0;
+}
+
+bool UTXOSet::isReserved(const UTXO& utxo) const {
+    return reserved_utxos.find(utxo) != reserved_utxos.end();
+}
+
+std::vector<UTXO> UTXOSet::getAvailableUTXOsForAddress(const std::string& publicKey) const {
+    std::vector<UTXO> result;
+    for (const UTXO& utxo : utxos) {
+        if (utxo.getReceiverPublicKey() == publicKey && !isReserved(utxo)) {
+            result.push_back(utxo);
+        }
+    }
+    return result;
+}
+
 std::vector<UTXO> UTXOSet::getAllUTXOsForAddress(const std::string& publicKey) const {
     std::vector<UTXO> result;
     for (const UTXO& utxo : utxos) {
@@ -83,6 +106,7 @@ bool UTXOSet::spendUTXOs(const std::vector<TransactionInputs>& inputs) {
     for (const TransactionInputs& input : inputs) {
         UTXO target_utxo(input.getPreviousTransactionId(), input.getOutputIndex(), "", 0.0);
         removeUTXO(target_utxo);
+        unreserveUTXO(target_utxo);
     }
     
     return true;

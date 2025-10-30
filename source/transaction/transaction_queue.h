@@ -7,6 +7,7 @@
 #include <fstream>
 #include <algorithm>
 #include "transaction.h"
+#include "../utxo/UTXO_set.h"
 
 class TransactionQueue {
 private:

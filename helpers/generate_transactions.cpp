@@ -32,7 +32,7 @@ void generate_transactions(const std::string& filename, int num_transactions){
             receiver_index = user_dist(rng);
         }
         double amount = UTXOSet::getInstance()->getBalanceForAddress(public_keys[sender_index]) * balance_dist(rng);
-        std::vector<UTXO> sender_utxos = UTXOSet::getInstance()->getAllUTXOsForAddress(public_keys[sender_index]);
+        std::vector<UTXO> sender_utxos = UTXOSet::getInstance()->getAvailableUTXOsForAddress(public_keys[sender_index]);
         sort(sender_utxos.begin(), sender_utxos.end(), [](const UTXO& a, const UTXO& b) {
             return a.getAmount() > b.getAmount();
         });
