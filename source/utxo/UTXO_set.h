@@ -36,6 +36,7 @@ public:
     bool unreserveUTXO(const UTXO& utxo);
     bool isReserved(const UTXO& utxo) const;
     std::vector<UTXO> getAvailableUTXOsForAddress(const std::string& publicKey) const;
+    double getAvailableBalanceForAddress(const std::string& publicKey) const;
 
     std::vector<UTXO> getAllUTXOsForAddress(const std::string& publicKey) const;
     double getBalanceForAddress(const std::string& publicKey) const;

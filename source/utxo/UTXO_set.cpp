@@ -42,6 +42,15 @@ std::vector<UTXO> UTXOSet::getAvailableUTXOsForAddress(const std::string& public
     return result;
 }
 
+double UTXOSet::getAvailableBalanceForAddress(const std::string& publicKey) const {
+    double balance = 0.0;
+    std::vector<UTXO> available_utxos = getAvailableUTXOsForAddress(publicKey);
+    for (const UTXO& utxo : available_utxos) {
+        balance += utxo.getAmount();
+    }
+    return balance;
+}
+
 std::vector<UTXO> UTXOSet::getAllUTXOsForAddress(const std::string& publicKey) const {
     std::vector<UTXO> result;
     for (const UTXO& utxo : utxos) {
