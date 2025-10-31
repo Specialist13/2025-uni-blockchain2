@@ -61,6 +61,10 @@ void generate_transactions(const std::string& filename, int num_transactions){
         to_hash += output1.toString() + output2.toString();
         std::string transaction_id = SlaSimHash(to_hash);
         Transaction transaction(transaction_id, inputs, { output1, output2 });
+        UTXO mempoolUTXO1(transaction_id, 0, output1.getReceiverPublicKey(), output1.getAmount());
+        UTXO mempoolUTXO2(transaction_id, 1, output2.getReceiverPublicKey(), output2.getAmount());
+        UTXOSet::getInstance()->addMempoolUTXO(mempoolUTXO1);
+        UTXOSet::getInstance()->addMempoolUTXO(mempoolUTXO2);
         j.push_back(transaction.toJson());
     }
     std::ofstream fout(filename);

@@ -12,6 +12,8 @@ private:
     static UTXOSet* instance;
     std::unordered_set<UTXO> utxos;
 
+    std::unordered_set<UTXO> mempool_utxos;
+
     std::unordered_set<UTXO> reserved_utxos;
 
     UTXOSet() {};
@@ -31,6 +33,11 @@ public:
     bool removeUTXO(const UTXO& utxo);
     bool containsUTXO(const UTXO& utxo) const;
     size_t size() const;
+
+    bool addMempoolUTXO(const UTXO& utxo);
+    bool removeMempoolUTXO(const UTXO& utxo);
+    bool containsMempoolUTXO(const UTXO& utxo) const;
+    size_t sizeMempool() const;
 
     bool reserveUTXO(const UTXO& utxo);
     bool unreserveUTXO(const UTXO& utxo);

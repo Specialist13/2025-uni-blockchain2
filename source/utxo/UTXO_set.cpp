@@ -2,6 +2,7 @@
 
 UTXOSet* UTXOSet::instance = nullptr;
 
+// UTXOSet Methods
 bool UTXOSet::addUTXO(const UTXO& utxo) {
     auto result = utxos.insert(utxo);
     return result.second;
@@ -19,6 +20,25 @@ size_t UTXOSet::size() const {
     return utxos.size();
 }
 
+// Mempool UTXOSet Methods
+bool UTXOSet::addMempoolUTXO(const UTXO& utxo) {
+    auto result = mempool_utxos.insert(utxo);
+    return result.second;
+}
+
+bool UTXOSet::removeMempoolUTXO(const UTXO& utxo) {
+    return mempool_utxos.erase(utxo) > 0;
+}
+
+bool UTXOSet::containsMempoolUTXO(const UTXO& utxo) const {
+    return mempool_utxos.find(utxo) != mempool_utxos.end();
+}
+
+size_t UTXOSet::sizeMempool() const {
+    return mempool_utxos.size();
+}
+
+// Reserved UTXOSet Methods
 bool UTXOSet::reserveUTXO(const UTXO& utxo) {
     if (utxos.find(utxo) == utxos.end()) return false; // must exist
     return reserved_utxos.insert(utxo).second;
