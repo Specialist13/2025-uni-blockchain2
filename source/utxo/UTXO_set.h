@@ -12,7 +12,11 @@ private:
     static UTXOSet* instance;
     std::unordered_set<UTXO> utxos;
 
+    std::unordered_set<UTXO> mempool_utxos;
+
     std::unordered_set<UTXO> reserved_utxos;
+
+    std::unordered_set<UTXO> reserved_mempool_utxos;
 
     UTXOSet() {};
     
@@ -32,11 +36,24 @@ public:
     bool containsUTXO(const UTXO& utxo) const;
     size_t size() const;
 
+    bool addMempoolUTXO(const UTXO& utxo);
+    bool removeMempoolUTXO(const UTXO& utxo);
+    bool containsMempoolUTXO(const UTXO& utxo) const;
+    size_t sizeMempool() const;
+    std::vector<UTXO> getAllMempoolUTXOsForAddress(const std::string& publicKey) const;
+    double getMempoolBalanceForAddress(const std::string& publicKey) const;
+
     bool reserveUTXO(const UTXO& utxo);
     bool unreserveUTXO(const UTXO& utxo);
     bool isReserved(const UTXO& utxo) const;
     std::vector<UTXO> getAvailableUTXOsForAddress(const std::string& publicKey) const;
     double getAvailableBalanceForAddress(const std::string& publicKey) const;
+
+    bool reserveMempoolUTXO(const UTXO& utxo);
+    bool unreserveMempoolUTXO(const UTXO& utxo);
+    bool isReservedMempool(const UTXO& utxo) const;
+    std::vector<UTXO> getAvailableMempoolUTXOsForAddress(const std::string& publicKey) const;
+    double getAvailableMempoolBalanceForAddress(const std::string& publicKey) const;
 
     std::vector<UTXO> getAllUTXOsForAddress(const std::string& publicKey) const;
     double getBalanceForAddress(const std::string& publicKey) const;
