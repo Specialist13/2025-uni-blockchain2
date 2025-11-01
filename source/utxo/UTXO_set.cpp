@@ -38,6 +38,25 @@ size_t UTXOSet::sizeMempool() const {
     return mempool_utxos.size();
 }
 
+std::vector<UTXO> UTXOSet::getAllMempoolUTXOsForAddress(const std::string& publicKey) const {
+    std::vector<UTXO> result;
+    for (const UTXO& utxo : mempool_utxos) {
+        if (utxo.getReceiverPublicKey() == publicKey) {
+            result.push_back(utxo);
+        }
+    }
+    return result;
+}
+
+double UTXOSet::getMempoolBalanceForAddress(const std::string& publicKey) const {
+    double balance = 0.0;
+    std::vector<UTXO> mempool_utxos = getAllMempoolUTXOsForAddress(publicKey);
+    for (const UTXO& utxo : mempool_utxos) {
+        balance += utxo.getAmount();
+    }
+    return balance;
+}
+
 // Reserved UTXOSet Methods
 bool UTXOSet::reserveUTXO(const UTXO& utxo) {
     if (utxos.find(utxo) == utxos.end()) return false; // must exist
@@ -70,6 +89,38 @@ double UTXOSet::getAvailableBalanceForAddress(const std::string& publicKey) cons
     }
     return balance;
 }
+
+// Reserved Mempool UTXOSet Methods
+bool UTXOSet::reserveMempoolUTXO(const UTXO& utxo) {
+    // only reserve UTXOs that exist in the mempool
+    if (mempool_utxos.find(utxo) == mempool_utxos.end()) return false;
+    return reserved_mempool_utxos.insert(utxo).second;
+}
+bool UTXOSet::unreserveMempoolUTXO(const UTXO& utxo) {
+    return reserved_mempool_utxos.erase(utxo) > 0;
+}
+bool UTXOSet::isReservedMempool(const UTXO& utxo) const {
+    return reserved_mempool_utxos.find(utxo) != reserved_mempool_utxos.end();
+}
+std::vector<UTXO> UTXOSet::getAvailableMempoolUTXOsForAddress(const std::string& publicKey) const {
+    std::vector<UTXO> result;
+    for (const UTXO& utxo : mempool_utxos) {
+        if (utxo.getReceiverPublicKey() == publicKey && !isReservedMempool(utxo)) {
+            result.push_back(utxo);
+        }
+    }
+    return result;
+}
+double UTXOSet::getAvailableMempoolBalanceForAddress(const std::string& publicKey) const {
+    double balance = 0.0;
+    std::vector<UTXO> available_utxos = getAvailableMempoolUTXOsForAddress(publicKey);
+    for (const UTXO& utxo : available_utxos) {
+        balance += utxo.getAmount();
+    }
+    return balance;
+}
+
+// General UTXOSet Methods
 
 std::vector<UTXO> UTXOSet::getAllUTXOsForAddress(const std::string& publicKey) const {
     std::vector<UTXO> result;
