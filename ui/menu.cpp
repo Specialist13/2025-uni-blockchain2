@@ -141,14 +141,20 @@ void initializeBlockchain() {
         std::vector<Block> chainBlocks;
         chainBlocks.push_back(genesis_block);
         storage.save(chainBlocks);
-        return;
+        // ensure transaction queue file exists (start with empty array)
+        std::ifstream qfin("./data/transaction_queue.json");
+        if (!qfin) {
+            std::ofstream qf("./data/transaction_queue.json");
+            qf << "[]";
+            qf.close();
+        }
     }
     else {
         std::cout << "Loading existing blockchain..." << std::endl;
         UTXOSet::getInstance()->loadFromFile("./data/utxo_set.json");
         std::cout << "Blockchain loaded." << std::endl;
     }
-    
+    // initialize mining manager (always do this so miner is available on fresh start)
     g_miner = std::make_unique<MiningManager>("./data/transaction_queue.json", "./data/blockchain.json", g_difficulty);
     std::cout << "Blockchain initialized." << std::endl;
 }
