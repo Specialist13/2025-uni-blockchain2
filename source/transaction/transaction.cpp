@@ -2,6 +2,7 @@
 #include "../utxo/UTXO.h"
 #include "../keys/store.h"
 #include <cctype>
+#include <iostream>
 
 TransactionInputs::TransactionInputs(std::string previous_transaction_id_, int output_index_, std::string signature_)
     : previous_transaction_id(std::move(previous_transaction_id_)),
