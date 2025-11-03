@@ -65,7 +65,7 @@ public:
     bool validateOutputs() const;
     double getTotalInputAmount(const std::vector<UTXO>& available_utxos) const;
     double getTotalOutputAmount() const;
-    bool hasValidSignature() const;
+    bool hasValidSignature(const std::vector<UTXO>& available_utxos) const;
 };
 
 #endif
