@@ -12,6 +12,7 @@
 #include "../source/mining/mining_manager.h"
 #include "../source/block/block_storage.h"
 #include "../source/utxo/UTXO_set.h"
+#include "../source/keys/store.h"
 
 void displayMenu();
 void handleChoice(int choice);

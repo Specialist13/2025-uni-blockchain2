@@ -220,7 +220,7 @@ bool UTXOSet::validateTransaction(const Transaction& tx) const {
         return false;
     }
     
-    if (!tx.hasValidSignature()) {
+    if (!tx.hasValidSignature(available_utxos)) {
         return false;
     }
     

@@ -129,10 +129,13 @@ void handleChoice(int choice) {
 }
 
 void initializeBlockchain() {
+    Keys::Store::getInstance()->loadFromUsersFile("./data/users.txt");
+    
     std::ifstream fin("./data/blockchain.json");
     if (!fin) {
         std::cout << "This is a fresh start. Creating genesis block..." << std::endl;
         generate_users("./data/users.txt", 1000);
+        Keys::Store::getInstance()->loadFromUsersFile("./data/users.txt");
         Block genesis_block = createGenesisBlock();
         std::cout << "Genesis block created." << std::endl;
         UTXOSet::getInstance()->saveToFile("./data/utxo_set.json");
