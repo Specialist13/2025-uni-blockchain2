@@ -1,5 +1,8 @@
 #include "transaction.h"
 #include "../utxo/UTXO.h"
+#include "../keys/store.h"
+#include <cctype>
+#include <iostream>
 
 TransactionInputs::TransactionInputs(std::string previous_transaction_id_, int output_index_, std::string signature_)
     : previous_transaction_id(std::move(previous_transaction_id_)),
@@ -136,13 +139,48 @@ double Transaction::getTotalOutputAmount() const {
     return total;
 }
 
-bool Transaction::hasValidSignature() const {
-    // Simplified signature verification - just check if signature is not empty
-    // TODO: verify cryptographic signatures
+bool Transaction::hasValidSignature(const std::vector<UTXO>& available_utxos) const {
+    const size_t EXPECTED_SIGNATURE_LENGTH = 64;
+    
+    Keys::Store* key_store = Keys::Store::getInstance();
+    
     for (const TransactionInputs& input : inputs) {
-        if (input.getSignature().empty()) {
+        if (input.getSignature().empty() || input.getSignature().length() != EXPECTED_SIGNATURE_LENGTH) {
+            return false;
+        }
+        
+        const UTXO* referenced_utxo = nullptr;
+        for (const UTXO& utxo : available_utxos) {
+            if (utxo.getTransactionID() == input.getPreviousTransactionId() && 
+                utxo.getOutputIndex() == input.getOutputIndex()) {
+                referenced_utxo = &utxo;
+                break;
+            }
+        }
+        
+        if (referenced_utxo == nullptr) { return false; }
+        
+        std::string utxo_owner_public_key = referenced_utxo->getReceiverPublicKey();
+        std::string private_key = key_store->getPrivateKey(utxo_owner_public_key);
+        
+        if (private_key.empty()) {
+            std::cerr << "Private key not found for public key: " << utxo_owner_public_key << std::endl;
+            return false;
+        }
+        
+        // Reconstruct the expected signature
+        // Signature format: SlaSimHash(transaction_id + output_index + private_key)
+        std::string signature_input = input.getPreviousTransactionId() + 
+                                      std::to_string(input.getOutputIndex()) + 
+                                      private_key;
+        std::string expected_signature = SlaSimHash(signature_input);
+        
+        if (expected_signature != input.getSignature()) {
+            std::cerr << "Signature mismatch for input: tx_id=" << input.getPreviousTransactionId() 
+                      << ", output_index=" << input.getOutputIndex() << std::endl;
             return false;
         }
     }
+    
     return true;
 }
