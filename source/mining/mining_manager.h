@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <string>
+#include <memory>
+#include <atomic>
 #include "../transaction/transaction_queue.h"
 #include "../block/block.h"
 #include "../block/blockchain.h"
@@ -31,9 +33,18 @@ public:
                   const std::string& blockchainFile,
                   int difficulty_ = 3);
 
-    void startMining(int txPerBlock = 100, int maxBlocks = 2147483647);
+    // startMining optionally accepts a shared winner flag and this miner's id.
+    // If `winner` is non-null and another miner has already won (winner->load() != -1),
+    // the method should return early.
+    bool startMining(int txPerBlock = 100,
+                     int maxBlocks = 2147483647,
+                     std::shared_ptr<std::atomic<int>> winner = nullptr,
+                     int minerId = -1);
+
     std::vector<Transaction> selectValidTransactions(int count);
-    bool mineAndCommitBlock(const std::vector<Transaction>& txs);
+    bool mineAndCommitBlock(const std::vector<Transaction>& txs,
+                            std::shared_ptr<std::atomic<int>> winner = nullptr,
+                            int minerId = -1);
     void displayStatistics() const;
 
     size_t getTotalBlocksMined() const { return totalBlocksMined; }

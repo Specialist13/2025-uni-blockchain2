@@ -3,7 +3,9 @@
 static int g_difficulty = 3;
 static int g_txPerBlock = 100;
 static int g_maxBlocksPerRun = 1;
+static int g_numMiners = 5; // default to 5 miners
 static std::unique_ptr<MiningManager> g_miner;
+static std::unique_ptr<MiningPool> g_pool;
 
 void displayMenu() {
     std::cout << "Hello, welcome to the SlaSimCoin Interface!" << std::endl;
@@ -91,14 +93,19 @@ void handleChoice(int choice) {
             UTXOSet::getInstance()->outputToConsole();
             break;
         case 4: {
-            if (!g_miner) {
+            if (g_pool) {
+                std::cout << "Starting mining pool with " << g_numMiners << " miners, txPerBlock=" << g_txPerBlock
+                          << ", difficulty=" << g_difficulty
+                          << ", maxBlocks=" << g_maxBlocksPerRun << std::endl;
+                g_pool->startMining(g_txPerBlock, g_maxBlocksPerRun);
+            } else if (g_miner) {
+                std::cout << "Starting mining with txPerBlock=" << g_txPerBlock
+                          << ", difficulty=" << g_difficulty
+                          << ", maxBlocks=" << g_maxBlocksPerRun << std::endl;
+                g_miner->startMining(g_txPerBlock, g_maxBlocksPerRun);
+            } else {
                 std::cout << "Miner not initialized." << std::endl;
-                break;
             }
-            std::cout << "Starting mining with txPerBlock=" << g_txPerBlock
-                      << ", difficulty=" << g_difficulty
-                      << ", maxBlocks=" << g_maxBlocksPerRun << std::endl;
-            g_miner->startMining(g_txPerBlock, g_maxBlocksPerRun);
             break;
         }
         case 5:
@@ -116,7 +123,11 @@ void handleChoice(int choice) {
             int t; std::cin >> t; if (t > 0) g_txPerBlock = t;
             std::cout << "Enter max blocks per run (current: " << g_maxBlocksPerRun << "): ";
             int mb; std::cin >> mb; if (mb > 0) g_maxBlocksPerRun = mb;
-            g_miner = std::make_unique<MiningManager>("./data/transaction_queue.json", "./data/blockchain.json", g_difficulty);
+                std::cout << "Enter number of miners for pool (current: " << g_numMiners << "): ";
+                int nm; std::cin >> nm; if (nm > 0) g_numMiners = nm;
+
+                g_miner = std::make_unique<MiningManager>("./data/transaction_queue.json", "./data/blockchain.json", g_difficulty);
+                g_pool = std::make_unique<MiningPool>(g_numMiners, "./data/transaction_queue.json", "./data/blockchain.json", g_difficulty);
             std::cout << "Mining configuration updated." << std::endl;
             break;
         }
@@ -141,14 +152,27 @@ void initializeBlockchain() {
         std::vector<Block> chainBlocks;
         chainBlocks.push_back(genesis_block);
         storage.save(chainBlocks);
-        return;
-    }
-    else {
+
+        // Ensure transaction queue exists so miners and generator can operate
+        std::ofstream tq("./data/transaction_queue.json", std::ios::out | std::ios::trunc);
+        if (tq) {
+            tq << "[]" << std::endl;
+            tq.close();
+        }
+        std::cout << "Initialized genesis and created empty transaction queue." << std::endl;
+    } else {
         std::cout << "Loading existing blockchain..." << std::endl;
         UTXOSet::getInstance()->loadFromFile("./data/utxo_set.json");
         std::cout << "Blockchain loaded." << std::endl;
     }
-    
+
+    // Initialize miner or pool
     g_miner = std::make_unique<MiningManager>("./data/transaction_queue.json", "./data/blockchain.json", g_difficulty);
+    // Optionally create a pool (default number of miners configurable in menu)
+    if (!g_pool) {
+        // create but do not start automatically; user can configure via menu
+        g_pool = std::make_unique<MiningPool>(g_numMiners, "./data/transaction_queue.json", "./data/blockchain.json", g_difficulty);
+    }
+
     std::cout << "Blockchain initialized." << std::endl;
 }
