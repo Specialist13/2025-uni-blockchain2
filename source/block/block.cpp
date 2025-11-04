@@ -30,6 +30,8 @@ long long Block::getTimestamp() const { return timestamp; }
 
 long long Block::getNonce() const { return nonce; }
 
+void Block::setNonce(long long n) { nonce = n; }
+
 const std::vector<Transaction>& Block::getTransactions() const { return transactions; }
 
 std::string Block::toString() const {

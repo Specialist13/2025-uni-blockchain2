@@ -23,6 +23,7 @@ private:
     std::vector<Transaction> transactions;
 public:
     Block(std::string previous_block_hash_, std::string merkle_root_hash_, int version_, int difficulty_, long long timestamp_, long long nonce_, std::vector<Transaction> transactions_);
+    void setNonce(long long n);
 
     std::string getPreviousBlockHash() const;
     std::string getMerkleRootHash() const;

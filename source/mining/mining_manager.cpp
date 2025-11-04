@@ -10,24 +10,26 @@ MiningManager::MiningManager(const std::string& queueFile,
     chain.setBlocks(storage.load());
 }
 
-void MiningManager::startMining(int txPerBlock, int maxBlocks) {
+bool MiningManager::startMining(int txPerBlock, int maxBlocks, std::shared_ptr<std::atomic<int>> winner, int minerId) {
     queue.loadFromFile();
     std::cout << "Starting mining. Pending txs: " << queue.size() << std::endl;
     int minedThisRun = 0;
-    while (queue.size() > 0 && minedThisRun < maxBlocks) {
+    while ((winner == nullptr || winner->load() == -1) && queue.size() > 0 && minedThisRun < maxBlocks) {
         queue.loadFromFile();
+        if (winner && winner->load() != -1) break; // somebody else won
         std::vector<Transaction> txs = selectValidTransactions(txPerBlock);
         if (txs.empty()) {
             std::cout << "No valid transactions available. Stopping." << std::endl;
-            break;
+            return false;
         }
-        if (!mineAndCommitBlock(txs)) {
-            std::cout << "Failed to mine/commit block. Stopping." << std::endl;
-            break;
+        if (!mineAndCommitBlock(txs, winner, minerId)) {
+            std::cout << "Failed to mine/commit block or aborted. Stopping." << std::endl;
+            return false;
         }
         ++minedThisRun;
         displayStatistics();
     }
+    return true;
 }
 
 std::vector<Transaction> MiningManager::selectValidTransactions(int count) {
@@ -45,7 +47,7 @@ std::vector<Transaction> MiningManager::selectValidTransactions(int count) {
     return selected;
 }
 
-bool MiningManager::mineAndCommitBlock(const std::vector<Transaction>& txs) {
+bool MiningManager::mineAndCommitBlock(const std::vector<Transaction>& txs, std::shared_ptr<std::atomic<int>> winner, int minerId) {
     std::string previousHash = chain.getBlockCount() > 0
         ? Blockchain::computeBlockHash(chain.getLatestBlock())
         : std::string(64, '0');
@@ -59,9 +61,46 @@ bool MiningManager::mineAndCommitBlock(const std::vector<Transaction>& txs) {
 
     std::cout << "Mining block with " << txs.size() << " txs..." << std::endl;
     const auto start = std::chrono::steady_clock::now();
-    if (!block.mineBlock(difficulty)) {
-        return false;
+
+    // Manual mining loop so we can check `winner` and abort early if another miner won.
+    std::string target(difficulty, '0');
+    while (true) {
+        if (winner && winner->load() != -1 && winner->load() != minerId) {
+            std::cout << "Aborting mining because miner " << winner->load() << " already won." << std::endl;
+            return false;
+        }
+
+        // increment nonce and test
+        ++nonce;
+        block.setNonce(nonce);
+        std::string header = previousHash + merkle + std::to_string(version) + std::to_string(difficulty) + std::to_string(timestamp) + std::to_string(nonce);
+        std::string hash = SlaSimHash(header);
+        if (Block::hasLeadingZeros(hash, difficulty)) {
+            // Try to claim the win if a winner atomic is provided
+            if (winner) {
+                int expected = -1;
+                if (winner->compare_exchange_strong(expected, minerId)) {
+                    std::cout << "Miner " << minerId << " claims the win with nonce=" << nonce << ", hash=" << hash << std::endl;
+                    break; // proceed to commit
+                } else {
+                    std::cout << "Miner " << minerId << " found a block but lost the race to miner " << expected << std::endl;
+                    return false;
+                }
+            } else {
+                // No winner tracking; proceed (single-threaded miner)
+                std::cout << "Mined block with nonce=" << nonce << ", hash=" << hash << std::endl;
+                break;
+            }
+        }
+        // Periodic optional check to avoid busy-checking winner too often
+        if (nonce % 100000 == 0) {
+            if (winner && winner->load() != -1 && winner->load() != minerId) {
+                std::cout << "Aborting mining mid-run because another miner won." << std::endl;
+                return false;
+            }
+        }
     }
+
     const auto end = std::chrono::steady_clock::now();
     lastBlockSeconds = std::chrono::duration<double>(end - start).count();
     lastBlockHashes = static_cast<unsigned long long>(block.getNonce());
@@ -89,7 +128,7 @@ bool MiningManager::mineAndCommitBlock(const std::vector<Transaction>& txs) {
     queue.removeTransactions(txs);
     queue.saveToFile();
 
-    std::cout << "Block committed. Chain height: " << chain.getBlockCount() << std::endl;
+    std::cout << "Block committed by miner " << (winner ? std::to_string(winner->load()) : std::string("-")) << ". Chain height: " << chain.getBlockCount() << std::endl;
     return true;
 }
 
