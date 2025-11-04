@@ -1,5 +1,6 @@
 #include "mining_manager.h"
 #include <ctime>
+#include <chrono>
 #include <iostream>
 
 MiningManager::MiningManager(const std::string& queueFile,
@@ -14,6 +15,9 @@ bool MiningManager::startMining(int txPerBlock, int maxBlocks, std::shared_ptr<s
     queue.loadFromFile();
     std::cout << "Starting mining. Pending txs: " << queue.size() << std::endl;
     int minedThisRun = 0;
+    // adaptive timeout: start at 5 seconds, double on each timeout event
+    double initialTimeout = 5.0;
+    double currentTimeout = initialTimeout;
     while ((winner == nullptr || winner->load() == -1) && queue.size() > 0 && minedThisRun < maxBlocks) {
         queue.loadFromFile();
         if (winner && winner->load() != -1) break; // somebody else won
@@ -22,11 +26,21 @@ bool MiningManager::startMining(int txPerBlock, int maxBlocks, std::shared_ptr<s
             std::cout << "No valid transactions available. Stopping." << std::endl;
             return false;
         }
-        if (!mineAndCommitBlock(txs, winner, minerId)) {
+        int res = mineAndCommitBlock(txs, winner, minerId, currentTimeout);
+        if (res == 1) {
+            // success: reset timeout
+            currentTimeout = initialTimeout;
+            ++minedThisRun;
+        } else if (res == 2) {
+            // timeout: no miner found a block within currentTimeout, increase wait window
+            currentTimeout *= 2.0;
+            std::cout << "No miner found a block within " << (currentTimeout / 2.0) << "s - increasing timeout to " << currentTimeout << "s and retrying." << std::endl;
+            // continue without incrementing minedThisRun
+            continue;
+        } else {
             std::cout << "Failed to mine/commit block or aborted. Stopping." << std::endl;
             return false;
         }
-        ++minedThisRun;
         displayStatistics();
     }
     return true;
@@ -47,7 +61,7 @@ std::vector<Transaction> MiningManager::selectValidTransactions(int count) {
     return selected;
 }
 
-bool MiningManager::mineAndCommitBlock(const std::vector<Transaction>& txs, std::shared_ptr<std::atomic<int>> winner, int minerId) {
+int MiningManager::mineAndCommitBlock(const std::vector<Transaction>& txs, std::shared_ptr<std::atomic<int>> winner, int minerId, double timeoutSeconds) {
     std::string previousHash = chain.getBlockCount() > 0
         ? Blockchain::computeBlockHash(chain.getLatestBlock())
         : std::string(64, '0');
@@ -67,7 +81,7 @@ bool MiningManager::mineAndCommitBlock(const std::vector<Transaction>& txs, std:
     while (true) {
         if (winner && winner->load() != -1 && winner->load() != minerId) {
             std::cout << "Aborting mining because miner " << winner->load() << " already won." << std::endl;
-            return false;
+            return 0;
         }
 
         // increment nonce and test
@@ -96,7 +110,14 @@ bool MiningManager::mineAndCommitBlock(const std::vector<Transaction>& txs, std:
         if (nonce % 100000 == 0) {
             if (winner && winner->load() != -1 && winner->load() != minerId) {
                 std::cout << "Aborting mining mid-run because another miner won." << std::endl;
-                return false;
+                return 0;
+            }
+            // Check timeout at periodic intervals to avoid expensive time calls every nonce
+            const auto now = std::chrono::steady_clock::now();
+            double elapsed = std::chrono::duration<double>(now - start).count();
+            if (elapsed >= timeoutSeconds) {
+                std::cout << "Timeout reached (" << elapsed << "s) without finding a block." << std::endl;
+                return 2; // timeout
             }
         }
     }
@@ -119,7 +140,7 @@ bool MiningManager::mineAndCommitBlock(const std::vector<Transaction>& txs, std:
 
     if (!chain.addBlock(block)) {
         std::cerr << "Block chaining validation failed." << std::endl;
-        return false;
+        return 0;
     }
 
     // Persist: blockchain, UTXO set, and remove mined txs from queue
@@ -129,7 +150,7 @@ bool MiningManager::mineAndCommitBlock(const std::vector<Transaction>& txs, std:
     queue.saveToFile();
 
     std::cout << "Block committed by miner " << (winner ? std::to_string(winner->load()) : std::string("-")) << ". Chain height: " << chain.getBlockCount() << std::endl;
-    return true;
+    return 1;
 }
 
 void MiningManager::displayStatistics() const {
