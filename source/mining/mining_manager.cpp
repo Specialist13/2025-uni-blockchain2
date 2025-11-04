@@ -66,7 +66,6 @@ bool MiningManager::mineAndCommitBlock(const std::vector<Transaction>& txs, std:
     std::string target(difficulty, '0');
     while (true) {
         if (winner && winner->load() != -1 && winner->load() != minerId) {
-            // Another miner already won; abort
             std::cout << "Aborting mining because miner " << winner->load() << " already won." << std::endl;
             return false;
         }
@@ -84,7 +83,6 @@ bool MiningManager::mineAndCommitBlock(const std::vector<Transaction>& txs, std:
                     std::cout << "Miner " << minerId << " claims the win with nonce=" << nonce << ", hash=" << hash << std::endl;
                     break; // proceed to commit
                 } else {
-                    // someone else beat us
                     std::cout << "Miner " << minerId << " found a block but lost the race to miner " << expected << std::endl;
                     return false;
                 }
