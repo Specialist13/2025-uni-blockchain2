@@ -20,13 +20,38 @@ MiningPool::~MiningPool() {
     omp_destroy_lock(&blockCommitLock);
 }
 
-void MiningPool::startMining(int txPerBlock, int maxBlocksPerMiner) {
-    // Shared atomic that holds the winning miner id, -1 means none yet
-    auto winner = std::make_shared<std::atomic<int>>(-1);
+void MiningPool::startMining(int txPerBlock, int maxBlocks) {
+    // Mine up to `maxBlocks` total across the pool. For each block we run a
+    // competitive round where all miners race; the winner atomic is reset
+    // per-round so that multiple blocks can be mined in sequence.
+    int mined = 0;
+    while (mined < maxBlocks) {
+        sharedQueue.loadFromFile();
+        if (sharedQueue.size() == 0) {
+            std::cout << "No transactions left in queue. Stopping mining pool." << std::endl;
+            break;
+        }
 
-    // Run each miner concurrently; each miner will check `winner` periodically
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(miners.size()); ++i) {
-        miners[i].startMining(txPerBlock, maxBlocksPerMiner, winner, i);
+        // fresh winner for this round
+        auto winner = std::make_shared<std::atomic<int>>(-1);
+
+        // Run each miner concurrently; each miner will try to mine a single block
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(miners.size()); ++i) {
+            // ask each miner to attempt at most 1 block in this round
+            miners[i].startMining(txPerBlock, 1, winner, i);
+        }
+
+        int win = winner->load();
+        if (win != -1) {
+            ++mined;
+            std::cout << "Round complete: miner " << win << " won. Total mined by pool this run: " << mined << std::endl;
+            // continue to next round to mine another block
+            continue;
+        } else {
+            // no winner in this round; likely miners timed out. Stop to avoid busy-looping
+            std::cout << "No miner found a block in this round. Stopping mining pool." << std::endl;
+            break;
+        }
     }
 }
