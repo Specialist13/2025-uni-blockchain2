@@ -1,7 +1,11 @@
 #include "mining_manager.h"
+#include "../transaction/transaction.h"
 #include <ctime>
 #include <chrono>
 #include <iostream>
+#include <fstream>
+#include <random>
+#include <vector>
 
 MiningManager::MiningManager(const std::string& queueFile,
                              const std::string& blockchainFile,
@@ -11,6 +15,34 @@ MiningManager::MiningManager(const std::string& queueFile,
     chain.setBlocks(storage.load());
 }
 
+std::string MiningManager::getRandomUserPublicKey() const {
+    std::ifstream usersFile("./data/users.txt"); // TODO: check if this is the correct file
+    if (!usersFile.is_open()) {
+        std::cerr << "Warning: Could not open users.txt for coinbase reward. Using default address." << std::endl;
+        return std::string(64, '0');
+    }
+    
+    std::vector<std::string> public_keys;
+    std::string first_name, last_name, public_key, private_key;
+    int balance;
+    
+    while (usersFile >> first_name >> last_name >> public_key >> private_key >> balance) {
+        public_keys.push_back(public_key);
+    }
+    usersFile.close();
+    
+    if (public_keys.empty()) {
+        std::cerr << "Warning: No users found in users.txt. Using default address." << std::endl;
+        return std::string(64, '0');
+    }
+    
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<size_t> dis(0, public_keys.size() - 1);
+    
+    return public_keys[dis(gen)];
+}
+
 bool MiningManager::startMining(int txPerBlock, int maxBlocks, std::shared_ptr<std::atomic<int>> winner, int minerId) {
     queue.loadFromFile();
     std::cout << "Starting mining. Pending txs: " << queue.size() << std::endl;
@@ -18,14 +50,11 @@ bool MiningManager::startMining(int txPerBlock, int maxBlocks, std::shared_ptr<s
     // adaptive timeout: start at 5 seconds, double on each timeout event
     double initialTimeout = 5.0;
     double currentTimeout = initialTimeout;
-    while ((winner == nullptr || winner->load() == -1) && queue.size() > 0 && minedThisRun < maxBlocks) {
+    while ((winner == nullptr || winner->load() == -1) && minedThisRun < maxBlocks) {
         queue.loadFromFile();
         if (winner && winner->load() != -1) break; // somebody else won
         std::vector<Transaction> txs = selectValidTransactions(txPerBlock);
-        if (txs.empty()) {
-            std::cout << "No valid transactions available. Stopping." << std::endl;
-            return false;
-        }
+        // Allow mining even with zero user transactions (will mine coinbase only)
         int res = mineAndCommitBlock(txs, winner, minerId, currentTimeout);
         if (res == 1) {
             // success: reset timeout
@@ -70,10 +99,22 @@ int MiningManager::mineAndCommitBlock(const std::vector<Transaction>& txs, std::
     long long timestamp = static_cast<long long>(std::time(nullptr));
     long long nonce = 0;
 
-    std::string merkle = Block::computeMerkleRoot(txs);
-    Block block(previousHash, merkle, version, difficulty, timestamp, nonce, txs);
+    // Create coinbase transaction: 50.0 coins to random user
+    // TODO: block reward const should be near transactions
+    const double BLOCK_REWARD = 50.0;
+    std::string minerAddress = getRandomUserPublicKey();
+    Transaction coinbase = Transaction::createCoinbaseTransaction(minerAddress, BLOCK_REWARD);
+    
+    // Prepend coinbase to transaction list (coinbase must be first)
+    std::vector<Transaction> allTransactions;
+    allTransactions.reserve(txs.size() + 1);
+    allTransactions.push_back(coinbase);
+    allTransactions.insert(allTransactions.end(), txs.begin(), txs.end());
 
-    std::cout << "Mining block with " << txs.size() << " txs..." << std::endl;
+    std::string merkle = Block::computeMerkleRoot(allTransactions);
+    Block block(previousHash, merkle, version, difficulty, timestamp, nonce, allTransactions);
+
+    std::cout << "Mining block with " << allTransactions.size() << " txs (1 coinbase + " << txs.size() << " user txs)..." << std::endl;
     const auto start = std::chrono::steady_clock::now();
 
     // Manual mining loop so we can check `winner` and abort early if another miner won.
@@ -134,7 +175,7 @@ int MiningManager::mineAndCommitBlock(const std::vector<Transaction>& txs, std::
         : lastHashrateHps;
 
     // Process: transactions (update UTXO set)
-    for (const Transaction& tx : txs) {
+    for (const Transaction& tx : allTransactions) {
         utxo->processTransaction(tx);
     }
 
@@ -143,10 +184,10 @@ int MiningManager::mineAndCommitBlock(const std::vector<Transaction>& txs, std::
         return 0;
     }
 
-    // Persist: blockchain, UTXO set, and remove mined txs from queue
+    // Persist: blockchain, UTXO set, and remove mined user txs from queue (not coinbase)
     storage.save(chain.getBlocks());
     utxo->saveToFile("data/utxo_set.json");
-    queue.removeTransactions(txs);
+    queue.removeTransactions(txs); // Only remove user transactions, not coinbase
     queue.saveToFile();
 
     std::cout << "Block committed by miner " << (winner ? std::to_string(winner->load()) : std::string("-")) << ". Chain height: " << chain.getBlockCount() << std::endl;
