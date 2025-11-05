@@ -185,8 +185,12 @@ bool UTXOSet::spendUTXOs(const std::vector<TransactionInputs>& inputs) {
     
     for (const TransactionInputs& input : inputs) {
         UTXO target_utxo(input.getPreviousTransactionId(), input.getOutputIndex(), "", 0.0);
+        // Remove from confirmed UTXOs
         removeUTXO(target_utxo);
         unreserveUTXO(target_utxo);
+        // Also remove from mempool if it exists (shouldn't happen, but for safety)
+        removeMempoolUTXO(target_utxo);
+        unreserveMempoolUTXO(target_utxo);
     }
     
     return true;
@@ -195,11 +199,34 @@ bool UTXOSet::spendUTXOs(const std::vector<TransactionInputs>& inputs) {
 void UTXOSet::addTransactionOutputs(const std::string& transaction_id, const std::vector<TransactionOutputs>& outputs) {
     for (int i = 0; i < static_cast<int>(outputs.size()); ++i) {
         UTXO new_utxo(transaction_id, i, outputs[i].getReceiverPublicKey(), outputs[i].getAmount());
+        // Remove from mempool if it exists (convert from unconfirmed to confirmed)
+        removeMempoolUTXO(new_utxo);
+        unreserveMempoolUTXO(new_utxo);
         addUTXO(new_utxo);
     }
 }
 
+bool UTXOSet::hasAllInputsConfirmed(const Transaction& tx) const {
+    // A transaction can only be processed if all its parent transactions are confirmed
+    for (const TransactionInputs& input : tx.getInputs()) {
+        UTXO target_utxo(input.getPreviousTransactionId(), input.getOutputIndex(), "", 0.0);
+        
+        if (containsMempoolUTXO(target_utxo)) {
+            return false;
+        }
+        
+        if (!containsUTXO(target_utxo)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool UTXOSet::validateTransaction(const Transaction& tx) const {
+    if (!hasAllInputsConfirmed(tx)) {
+        return false;
+    }
+    
     std::vector<UTXO> available_utxos;
     for (const UTXO& utxo : utxos) {
         available_utxos.push_back(utxo);

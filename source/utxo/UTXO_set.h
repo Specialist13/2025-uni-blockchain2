@@ -66,6 +66,7 @@ public:
     
     bool spendUTXOs(const std::vector<TransactionInputs>& inputs);
     void addTransactionOutputs(const std::string& transaction_id, const std::vector<TransactionOutputs>& outputs);
+    bool hasAllInputsConfirmed(const Transaction& tx) const;
     bool validateTransaction(const Transaction& tx) const;
     void processTransaction(const Transaction& tx);
     std::vector<UTXO> getUTXOsForTransaction(const std::string& transaction_id) const;
