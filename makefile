@@ -1,7 +1,7 @@
 CXX = g++
 CXXFLAGS = -std=c++17 -fopenmp -O2
 SRC = $(wildcard ./source/*.cpp ./source/block/*.cpp ./source/transaction/*.cpp \
-       ./source/utxo/*.cpp ./source/mining/*.cpp ./helpers/*.cpp ./ui/*.cpp main.cpp)
+       ./source/utxo/*.cpp ./source/mining/*.cpp ./source/keys/*.cpp ./helpers/*.cpp ./ui/*.cpp main.cpp)
 TARGET = main
 
 all:
