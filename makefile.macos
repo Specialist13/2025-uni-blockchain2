@@ -14,7 +14,7 @@ else
     OMP_INCLUDE_PATH = /usr/local/opt/libomp/include
 endif
 
-CXXFLAGS = -std=c++17 -O2 -Xpreprocessor -fopenmp -I$(OMP_INCLUDE_PATH) -arch x86_64
+CXXFLAGS = -std=c++17 -O1 -Xpreprocessor -fopenmp -I$(OMP_INCLUDE_PATH) -arch x86_64
 LDFLAGS = -L$(OMP_LIB_PATH) -lomp -arch x86_64
 
 SRC = $(wildcard ./source/*.cpp ./source/block/*.cpp ./source/transaction/*.cpp \

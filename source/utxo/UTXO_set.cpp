@@ -223,6 +223,11 @@ bool UTXOSet::hasAllInputsConfirmed(const Transaction& tx) const {
 }
 
 bool UTXOSet::validateTransaction(const Transaction& tx) const {
+    // Coinbase transactions are exempt from normal validation
+    if (tx.isCoinbase()) {
+        return tx.isValid() && tx.validateOutputs();
+    }
+    
     if (!hasAllInputsConfirmed(tx)) {
         return false;
     }
@@ -260,9 +265,12 @@ void UTXOSet::processTransaction(const Transaction& tx) {
         return;
     }
     
-    if (!spendUTXOs(tx.getInputs())) {
-        std::cerr << "Failed to spend UTXOs for transaction: " << tx.getTransactionId() << std::endl;
-        return;
+    // Coinbase transactions don't spend any UTXOs (synthetic input)
+    if (!tx.isCoinbase()) {
+        if (!spendUTXOs(tx.getInputs())) {
+            std::cerr << "Failed to spend UTXOs for transaction: " << tx.getTransactionId() << std::endl;
+            return;
+        }
     }
     
     addTransactionOutputs(tx.getTransactionId(), tx.getOutputs());

@@ -27,6 +27,8 @@ private:
     unsigned long long lastBlockHashes = 0ULL;
     double lastHashrateHps = 0.0; // hashes per second
     double avgHashrateHps = 0.0;
+    
+    std::string getRandomUserPublicKey() const;
 
 public:
     MiningManager(const std::string& queueFile,
