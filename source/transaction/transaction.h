@@ -66,6 +66,9 @@ public:
     double getTotalInputAmount(const std::vector<UTXO>& available_utxos) const;
     double getTotalOutputAmount() const;
     bool hasValidSignature(const std::vector<UTXO>& available_utxos) const;
+    
+    static Transaction createCoinbaseTransaction(const std::string& receiver_public_key, double amount);
+    bool isCoinbase() const;
 };
 
 #endif

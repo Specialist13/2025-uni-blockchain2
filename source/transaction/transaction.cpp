@@ -70,6 +70,14 @@ json Transaction::toJson() const {
 }
 
 bool Transaction::isValid() const {
+    // Coinbase transactions are valid even with synthetic input
+    if (isCoinbase()) {
+        if (outputs.empty()) {
+            return false;
+        }
+        return validateOutputs();
+    }
+    
     if (inputs.empty() || outputs.empty()) {
         return false;
     }
@@ -183,4 +191,26 @@ bool Transaction::hasValidSignature(const std::vector<UTXO>& available_utxos) co
     }
     
     return true;
+}
+
+Transaction Transaction::createCoinbaseTransaction(const std::string& receiver_public_key, double amount) {
+    std::vector<TransactionInputs> coinbase_inputs;
+    coinbase_inputs.push_back(TransactionInputs("COINBASE", -1, ""));
+    
+    std::vector<TransactionOutputs> coinbase_outputs;
+    coinbase_outputs.push_back(TransactionOutputs(receiver_public_key, amount));
+    
+    // Compute transaction ID from coinbase-specific data
+    std::string coinbase_data = "COINBASE" + std::to_string(-1) + receiver_public_key + std::to_string(amount);
+    std::string transaction_id = SlaSimHash(coinbase_data);
+    
+    return Transaction(transaction_id, coinbase_inputs, coinbase_outputs);
+}
+
+bool Transaction::isCoinbase() const {
+    if (inputs.size() != 1) {
+        return false;
+    }
+    const TransactionInputs& input = inputs[0];
+    return input.getPreviousTransactionId() == "COINBASE" && input.getOutputIndex() == -1;
 }
