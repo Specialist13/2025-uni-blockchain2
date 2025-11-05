@@ -42,9 +42,11 @@ public:
                      int minerId = -1);
 
     std::vector<Transaction> selectValidTransactions(int count);
-    bool mineAndCommitBlock(const std::vector<Transaction>& txs,
-                            std::shared_ptr<std::atomic<int>> winner = nullptr,
-                            int minerId = -1);
+    // Returns: 1 = mined & committed, 2 = timeout (no block found within timeoutSeconds), 0 = aborted/failure
+    int mineAndCommitBlock(const std::vector<Transaction>& txs,
+                           std::shared_ptr<std::atomic<int>> winner = nullptr,
+                           int minerId = -1,
+                           double timeoutSeconds = 5.0);
     void displayStatistics() const;
 
     size_t getTotalBlocksMined() const { return totalBlocksMined; }
