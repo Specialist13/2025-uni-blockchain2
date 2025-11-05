@@ -1,0 +1,34 @@
+# macOS Makefile - requires libomp installed via Homebrew
+# Install with: brew install libomp
+
+CXX = clang++
+# Detect architecture (Apple Silicon vs Intel)
+UNAME_M := $(shell uname -m)
+ifeq ($(UNAME_M),arm64)
+    # Apple Silicon Mac
+    OMP_LIB_PATH = /opt/homebrew/opt/libomp/lib
+    OMP_INCLUDE_PATH = /opt/homebrew/opt/libomp/include
+else
+    # Intel Mac
+    OMP_LIB_PATH = /usr/local/opt/libomp/lib
+    OMP_INCLUDE_PATH = /usr/local/opt/libomp/include
+endif
+
+CXXFLAGS = -std=c++17 -O2 -Xpreprocessor -fopenmp -I$(OMP_INCLUDE_PATH) -arch x86_64
+LDFLAGS = -L$(OMP_LIB_PATH) -lomp -arch x86_64
+
+SRC = $(wildcard ./source/*.cpp ./source/block/*.cpp ./source/transaction/*.cpp \
+       ./source/utxo/*.cpp ./source/mining/*.cpp ./source/keys/*.cpp ./helpers/*.cpp ./ui/*.cpp main.cpp)
+TARGET = main
+
+all:
+	@echo "Building for macOS with OpenMP support..."
+	@if [ ! -d "$(OMP_LIB_PATH)" ]; then \
+		echo "Error: libomp not found. Please install with: brew install libomp"; \
+		exit 1; \
+	fi
+	$(CXX) $(CXXFLAGS) $(SRC) $(LDFLAGS) -o $(TARGET)
+
+clean:
+	rm -f $(TARGET)
+

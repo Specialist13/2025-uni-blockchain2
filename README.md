@@ -61,12 +61,34 @@ data/
 ```
 
 ## Build and Run
-Requirements: g++ with C++17
+
+### Requirements
+- C++17 compatible compiler (g++ or clang++)
+- OpenMP support (for parallel mining)
+
+### Linux / Standard Unix Systems
 
 ```bash
 make
 ./main
 ```
+
+### macOS
+
+macOS requires OpenMP to be installed via Homebrew first:
+
+```bash
+# Install OpenMP library
+brew install libomp
+
+# Build using the macOS-specific makefile
+make -f makefile.macos
+
+# Run
+./main
+```
+
+**Note:** The standard `makefile` uses `-fopenmp` which is not supported by clang on macOS. Use `makefile.macos` instead, which uses the Homebrew-installed OpenMP library.
 
 If `./data` files are missing, the app will generate users and a genesis block on first run.
 
